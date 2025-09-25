@@ -1,0 +1,11 @@
+<configuration>
+    <runtime>
+        <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"/>
+        <appDomainManagerAssembly value="REPLACEASSEMBLYNAME, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"/>
+        <appDomainManagerType value="REPLACEASSEMBLYNAMEManager"/>
+        <etwEnable enabled="false"/>
+    </runtime>
+    <startup>
+        <supportedRuntime version="v4.0"/>
+    </startup>
+</configuration>

@@ -1,0 +1,12 @@
+services:
+  caddy:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./static:/app/static
+      - ./logs:/logs
+      - ./build/:/app/static/build/
+    restart: unless-stopped
+    container_name: caddy-main
+    ports: 
+      - "80:80"

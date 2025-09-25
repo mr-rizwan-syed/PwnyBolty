@@ -1,0 +1,33 @@
+{
+  admin off
+}
+
+http://:80  {
+
+	root * /app/static/
+	file_server browse
+
+	log {
+		format json
+		output file /logs/caddy.log {
+			roll_size 50MB # Create new file when size exceeds 50MB
+			roll_keep 5 # Keep at most 5 rolled files
+		}
+	}
+
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:8000 {
+			header_up Host {host}
+			header_up X-Real-IP {remote}
+		}
+	}
+
+	@application {
+		path *.application
+	}
+	header @application {
+		Content-Type application/x-ms-application
+		Content-Disposition inline
+	}
+
+}

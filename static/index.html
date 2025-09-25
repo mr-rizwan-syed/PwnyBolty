@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ClickForClickOnce</title>
+        <link
+            type="image/png"
+            href="https://www.blackhillsinfosec.com/wp-content/uploads/2016/03/BHIS-favicon.png"
+            rel="apple-touch-icon"
+        />
+        <link
+            type="image/png"
+            href="//www.blackhillsinfosec.com/wp-content/uploads/2016/03/BHIS-favicon.png"
+            rel="icon"
+        />
+        <meta
+            name="robots"
+            content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+                line-height: 1.6;
+                padding: 40px 20px;
+                min-height: 100vh;
+                overflow-x: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+            }
+
+            body:before {
+                content: "";
+                display: block;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                top: 0;
+                z-index: -1;
+                background-color: rgba(0, 0, 0, 0.9);
+            }
+
+            .main-container {
+                max-width: 800px;
+                width: 100%;
+                background-color: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                border: 1px solid #333;
+                padding: 40px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+                font-weight: 600;
+                margin-bottom: 20px;
+                color: #fbfbfc;
+                text-align: center;
+            }
+
+            .description {
+                font-size: 1rem;
+                margin-bottom: 30px;
+                color: #b0b0b0;
+                text-align: center;
+            }
+
+            h2 {
+                font-size: 1.4rem;
+                font-weight: 400;
+                margin-bottom: 15px;
+                color: #ffffff;
+                border-bottom: 1px solid #333;
+                padding-bottom: 10px;
+            }
+
+            a {
+                color: #d6deff;
+                font-weight: 600;
+            }
+
+            a:hover {
+                color: #ffffff;
+            }
+
+            input[type="text"], input[type="file"], select {
+                background-color: #2a2a2a;
+                border: 1px solid #444;
+                color: #e0e0e0;
+                padding: 12px 16px;
+                border-radius: 4px;
+                width: 100%;
+                font-family: inherit;
+                font-size: 0.95rem;
+                margin-bottom: 10px;
+                transition: all 0.2s ease;
+            }
+
+            input[type="text"]:focus, input[type="file"]:focus, select:focus {
+                outline: none;
+                border-color: #d6deff;
+                background-color: #333;
+            }
+
+            input[type="file"] {
+                padding: 8px 12px;
+            }
+
+            button {
+                background-color: #d6deff;
+                color: #0f0f0f;
+                border: none;
+                padding: 12px 20px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: inherit;
+            }
+
+            button:hover {
+                background-color: #ffffff;
+                transform: translateY(-1px);
+            }
+
+            button:active {
+                transform: translateY(0);
+            }
+
+            .green-btn {
+                background-color: #90e24a;
+                color: #0f0f0f;
+            }
+
+            .green-btn:hover {
+                background-color: #a0f25b;
+            }
+
+            .red-btn {
+                background-color: #e24a90;
+                color: #ffffff;
+            }
+
+            .red-btn:hover {
+                background-color: #f25ba0;
+            }
+
+            .section {
+                margin-bottom: 30px;
+            }
+
+            .radio-group {
+                margin-bottom: 20px;
+            }
+
+            .radio-option {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 15px;
+                padding: 15px;
+                background-color: rgba(255, 255, 255, 0.03);
+                border-radius: 6px;
+                border: 1px solid #333;
+                transition: all 0.2s ease;
+            }
+
+            .radio-option:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+                border-color: #444;
+            }
+
+            .radio-option input[type="radio"] {
+                width: auto;
+                margin-right: 12px;
+                margin-top: 0;
+                accent-color: #d6deff;
+                align-self: center;
+            }
+
+            .radio-option-content {
+                flex: 1;
+            }
+
+            .radio-option-title {
+                font-weight: 600;
+                color: #ffffff;
+                margin-bottom: 5px;
+            }
+
+            .radio-option-desc {
+                font-size: 0.85rem;
+                color: #b0b0b0;
+                line-height: 1.4;
+            }
+
+            .slider-container {
+                margin-bottom: 20px;
+            }
+
+            .slider-labels {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                font-size: 0.9rem;
+                color: #b0b0b0;
+            }
+
+            .slider-value {
+                font-weight: 600;
+                color: #d6deff;
+            }
+
+            .slider {
+                -webkit-appearance: none;
+                width: 100%;
+                height: 8px;
+                border-radius: 5px;
+                background: #444;
+                outline: none;
+                transition: all 0.2s;
+            }
+
+            .slider:hover {
+                background: #555;
+            }
+
+            .slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: #d6deff;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .slider::-webkit-slider-thumb:hover {
+                background: #ffffff;
+                transform: scale(1.1);
+            }
+
+            .slider::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: #d6deff;
+                cursor: pointer;
+                border: none;
+            }
+
+            .action-selector {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                align-items: center;
+            }
+
+            .action-selector select {
+                flex: 1;
+                margin-bottom: 0;
+            }
+
+            .action-card {
+                background-color: rgba(255, 255, 255, 0.05);
+                border-radius: 6px;
+                padding: 20px;
+                margin-bottom: 15px;
+                border: 1px solid #444;
+                cursor: move;
+                transition: all 0.2s ease;
+            }
+
+            .action-card:hover {
+                background-color: rgba(255, 255, 255, 0.08);
+                border-color: #555;
+            }
+
+            .action-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .action-card-title {
+                font-weight: 600;
+                color: #ffffff;
+                font-size: 1.1rem;
+            }
+
+            .drag-hint {
+                color: #666;
+                font-size: 0.8rem;
+                font-weight: normal;
+            }
+
+            .action-card-remove {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .action-card-field {
+                margin-bottom: 15px;
+            }
+
+            .action-card-field:last-child {
+                margin-bottom: 0;
+            }
+
+            .field-label {
+                display: block;
+                color: #ffffff;
+                margin-bottom: 8px;
+                font-weight: 500;
+            }
+
+            .field-description {
+                color: #b0b0b0;
+                font-size: 0.85rem;
+                font-style: italic;
+                margin-bottom: 10px;
+                line-height: 1.4;
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                flex-direction: column;
+            }
+
+            .spinner {
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top: 4px solid #d6deff;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-bottom: 20px;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            .overlay-text {
+                color: #ffffff;
+                font-size: 1.2rem;
+            }
+
+            .results-section {
+                margin-top: 30px;
+                padding: 20px;
+                background-color: rgba(144, 226, 74, 0.1);
+                border: 1px solid #90e24a;
+                border-radius: 6px;
+            }
+
+            .results-title {
+                color: #ffffff;
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            .result-link {
+                color: #90e24a;
+                word-break: break-all;
+            }
+
+            .error-message {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: rgba(226, 74, 144, 0.1);
+                border: 1px solid #e24a90;
+                border-radius: 6px;
+                color: #f25ba0;
+            }
+
+            .sortable-ghost {
+                opacity: 0.4;
+            }
+
+            .submit-section {
+                text-align: center;
+                margin-top: 40px;
+                padding-top: 30px;
+                border-top: 1px solid #333;
+            }
+
+            .submit-button {
+                font-size: 1.1rem;
+                padding: 15px 30px;
+                background-color: #4a90e2;
+                color: #ffffff;
+            }
+
+            .submit-button:hover {
+                background-color: #5ba0f2;
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    padding: 20px 15px;
+                }
+                
+                .main-container {
+                    padding: 20px;
+                }
+                
+                h1 {
+                    font-size: 2rem;
+                }
+                
+                .description {
+                    font-size: 0.9rem;
+                }
+
+                .action-selector {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Processing Overlay (hidden by default) -->
+        <div id="processingOverlay" class="overlay" style="display: none">
+            <div class="spinner"></div>
+            <p class="overlay-text">Processing Request...</p>
+        </div>
+
+        <div class="main-container">
+            <h1>ClickForClickOnce</h1>
+            <p class="description">
+                Welcome to ClickForClickOnce - an easy, web-based ClickOnce which allows operators to generate configurable clickonce payloads. Checkout the <a href="http://github.com/whokilleddb/clickforclickonce">Github repository</a> to read more about the project, how it works, IoCs and more!
+            </p>
+
+            <div class="section">
+                <h2>ClickOnce Name</h2>
+                <p class="field-description">
+                    This would be the name of the application the user sees. Make sure it fits the ruse!
+                </p>
+                <input
+                    type="text"
+                    id="nameInput"
+                    placeholder="ApplicationHelper"
+                />
+            </div>
+
+            <div class="section">
+                <h2>AppDomainManager Injection Options</h2>
+                <p class="field-description">
+                    The clickonce uses AppDomainManager Injection to run payloads - choose which Exe would you like to run your payload.
+                </p>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" name="sideloadOption" value="tzsync" checked>
+                        <div class="radio-option-content">
+                            <div class="radio-option-title">tzsync</div>
+                            <div class="radio-option-desc">
+                                Tzsync is a TimeZone Sync program responsible for synchronizing time zone information on a Windows operating system. Note that this is a console application so you might see a CMD terminal pop up.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="radio-option">
+                        <input type="radio" name="sideloadOption" value="powershell">
+                        <div class="radio-option-content">
+                            <div class="radio-option-title">Powershell ISE</div>
+                            <div class="radio-option-desc">
+                                The Windows PowerShell Integrated Scripting Environment (ISE) is a host application for Windows PowerShell that provides a graphical user interface for running commands, writing, testing, and debugging scripts.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="radio-option">
+                        <input type="radio" name="sideloadOption" value="SystemHost">
+                        <div class="radio-option-content">
+                            <div class="radio-option-title">ServiceHub.Host.netfx</div>
+                            <div class="radio-option-desc">
+                                ServiceHub.Host.netfx.x64 is associated with Visual Studio's Service Hub, which is a set of background services that provide support for various Visual Studio features and tools.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="radio-option">
+                        <input type="radio" name="sideloadOption" value="PerfWatson2">
+                        <div class="radio-option-content">
+                            <div class="radio-option-title">PerfWatson2</div>
+                            <div class="radio-option-desc">
+                                PerfWatson2 is a part of Microsoft Visual Studio and is related to performance monitoring and crash reporting while it's running.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Inflate Size</h2>
+                <p class="field-description">
+                    Some EDRs dont scan artefacts above a certain size threshold - so we can artificially inflate the payload sizes here:
+                </p>
+                <div class="slider-container">
+                    <div class="slider-labels">
+                        <span>0</span>
+                        <span class="slider-value" id="inflateValue">300</span>
+                        <span>500</span>
+                    </div>
+                    <input type="range" min="0" max="500" value="300" class="slider" id="inflateSlider">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Actions</h2>
+                <p class="field-description">
+                    This section allows you to add actions you want the ClickOnce to perform. The operations are performed in the order they are arranged. The Action Cards can also be dragged to be reordered.
+                </p>
+                
+                <div class="action-selector">
+                    <select id="actionType">
+                        <option value="run_code">Run Shellcode</option>
+                        <option value="drop_file">Drop File</option>
+                        <option value="run_cmd">Run OS Command</option>
+                    </select>
+                    <button id="addActionBtn" class="green-btn">Add Action</button>
+                </div>
+
+                <div id="actionCards">
+                    <!-- Action cards will be added here -->
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button id="submitBtn" class="submit-button">Submit</button>
+            </div>
+
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="results-title">Results here</div>
+                <a id="resultLink" href="#" target="_blank" class="result-link"></a>
+            </div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+
+        <script>
+            // Word lists for random name generation
+            const adjectives = [
+                'Smart', 'Quick', 'Secure', 'Silent', 'Rapid', 'Swift', 'Dynamic', 'Advanced',
+                'Premium', 'Elite', 'Pro', 'Ultra', 'Super', 'Mega', 'Power', 'Turbo',
+                'Active', 'Auto', 'Direct', 'Fast', 'Global', 'Instant', 'Live', 'Master',
+                'Multi', 'Prime', 'Real', 'Safe', 'Smart', 'Total', 'True', 'Virtual',
+                'Blue', 'Green', 'Red', 'Gold', 'Silver', 'Crystal', 'Digital', 'Cyber',
+                'System', 'Network', 'Cloud', 'Web', 'Data', 'File', 'Core', 'Main'
+            ];
+
+            const nouns = [
+                'Helper', 'Manager', 'Service', 'Tool', 'Utility', 'Agent', 'Handler', 'Client',
+                'Server', 'Browser', 'Viewer', 'Editor', 'Player', 'Reader', 'Writer', 'Scanner',
+                'Monitor', 'Tracker', 'Analyzer', 'Processor', 'Generator', 'Builder', 'Maker', 'Creator',
+                'Launcher', 'Runner', 'Executor', 'Controller', 'Coordinator', 'Organizer', 'Optimizer', 'Enhancer',
+                'Guard', 'Shield', 'Protector', 'Defender', 'Keeper', 'Watcher', 'Observer', 'Detector',
+                'Connector', 'Bridge', 'Gateway', 'Portal', 'Interface', 'Console', 'Panel', 'Dashboard',
+                'Studio', 'Workspace', 'Center', 'Hub', 'Station', 'Terminal', 'Explorer', 'Navigator'
+            ];
+
+            // Function to generate random name
+            function generateRandomName() {
+                const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+                return randomAdjective + randomNoun;
+            }
+
+            // Helper functions
+            function isValidClickOnceName(str) {
+                return /^[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/.test(str) || /^[a-zA-Z]$/.test(str);
+            }
+
+            function showProcessingOverlay() {
+                document.getElementById("processingOverlay").style.display = "flex";
+            }
+
+            function hideProcessingOverlay() {
+                document.getElementById("processingOverlay").style.display = "none";
+            }
+
+            function clearResults() {
+                document.getElementById("resultsSection").style.display = "none";
+                document.getElementById("errorMessage").style.display = "none";
+            }
+
+            function showResults(buildid) {
+                const url = window.location + "build/" + buildid;
+                const resultsSection = document.getElementById("resultsSection");
+                const resultLink = document.getElementById("resultLink");
+                resultLink.href = url;
+                resultLink.textContent = url;
+                resultsSection.style.display = "block";
+                window.open(url, '_blank');
+            }
+
+            function showError(message) {
+                const errorDiv = document.getElementById("errorMessage");
+                errorDiv.textContent = message;
+                errorDiv.style.display = "block";
+            }
+
+            // Initialize name field with random value
+            document.getElementById("nameInput").value = generateRandomName();
+
+            // Initialize slider value display
+            const inflateSlider = document.getElementById("inflateSlider");
+            const inflateValue = document.getElementById("inflateValue");
+
+            inflateSlider.oninput = function() {
+                inflateValue.textContent = this.value;
+            }
+
+            // Make action cards sortable
+            let actionCards = document.getElementById('actionCards');
+            let sortable = Sortable.create(actionCards, {
+                animation: 150,
+                handle: '.action-card',
+                ghostClass: 'sortable-ghost'
+            });
+
+            // Action counter for unique IDs
+            let actionCounter = 0;
+
+            // Add action button handler
+            document.getElementById("addActionBtn").addEventListener("click", function() {
+                const actionType = document.getElementById("actionType").value;
+                addActionCard(actionType, actionCounter++);
+            });
+
+            // Create action card based on type
+            function addActionCard(type, index) {
+                const card = document.createElement("div");
+                card.className = "action-card";
+                card.dataset.index = index;
+                card.dataset.type = type;
+                
+                let cardContent = `
+                    <div class="action-card-header">
+                        <div class="action-card-title">
+                            ${getActionTitle(type)} 
+                            <span class="drag-hint">(Drag to reorder)</span>
+                        </div>
+                        <button class="action-card-remove red-btn" data-index="${index}">
+                            Remove
+                        </button>
+                    </div>
+                `;
+                
+                // Add specific fields based on action type
+                switch(type) {
+                    case "run_code":
+                        cardContent += `
+                            <div class="action-card-field">
+                                <div class="field-description">Upload a x64 shellcode to be executed. Note that the shellcode execution is delayed by 8 minutes.</div>
+                                <label class="field-label">Shellcode File:</label>
+                                <input type="file" id="codefile-${index}" required>
+                            </div>
+                        `;
+                        break;
+                    case "drop_file":
+                        cardContent += `
+                            <div class="action-card-field">
+                                <div class="field-description">Upload a file to be dropped at the specified location on the target system. Supports env vars. Creates any missing parent directories. Make sure to specify the full path on the target including the extension if relevant.</div>
+                            </div>
+                            <div class="action-card-field">
+                                <label class="field-label">File to Drop:</label>
+                                <input type="file" id="dropfile-${index}" required>
+                            </div>
+                            <div class="action-card-field">
+                                <label class="field-label">Drop Location:</label>
+                                <input type="text" id="droplocation-${index}" placeholder="C:\\Test\\" required>
+                            </div>
+                        `;
+                        break;
+                    case "run_cmd":
+                        cardContent += `
+                            <div class="action-card-field">
+                                <div class="field-description">Execute an OS command on the target system. Env var are also supported.</div>
+                                <label class="field-label">Command:</label>
+                                <input type="text" id="command-${index}" placeholder="calc.exe" required>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                card.innerHTML = cardContent;
+                document.getElementById("actionCards").appendChild(card);
+                
+                // Add event listener for the remove button
+                card.querySelector(".action-card-remove").addEventListener("click", function() {
+                    card.remove();
+                });
+            }
+
+            function getActionTitle(type) {
+                switch(type) {
+                    case "run_code": return "Run Shellcode";
+                    case "drop_file": return "Drop File";
+                    case "run_cmd": return "Run OS Command";
+                    default: return "Action";
+                }
+            }
+
+            // Submit form
+            document.getElementById("submitBtn").addEventListener("click", async () => {
+                clearResults();
+                
+                const name = document.getElementById("nameInput").value.trim();
+                const sideload = document.querySelector('input[name="sideloadOption"]:checked').value;
+                const inflate = parseInt(document.getElementById("inflateSlider").value);
+                
+                // Validation
+                if (!name) {
+                    showError("Please enter a ClickOnce name.");
+                    return;
+                }
+
+                if (!isValidClickOnceName(name)) {
+                    showError("ClickOnce name must start with a letter, contain only alphanumeric characters and underscores, and cannot end with an underscore.");
+                    return;
+                }
+
+                // Build actions data
+                const actionCardElements = document.querySelectorAll(".action-card");
+                const actions = [];
+                
+                // Process each action card
+                for (let i = 0; i < actionCardElements.length; i++) {
+                    const card = actionCardElements[i];
+                    const cardType = card.dataset.type;
+                    const originalIndex = card.dataset.index;
+                    
+                    let actionData = {};
+                    
+                    switch(cardType) {
+                        case "run_code":
+                            const codeFileInput = document.getElementById(`codefile-${originalIndex}`);
+                            
+                            if (!codeFileInput.files.length) {
+                                showError(`Please select a shellcode file for Run Shellcode action #${i+1}`);
+                                return;
+                            }
+                            
+                            // Get file contents
+                            const codeFile = codeFileInput.files[0];
+                            const codeReader = new FileReader();
+                            codeReader.readAsDataURL(codeFile);
+                            await new Promise(resolve => codeReader.onload = resolve);
+                            const codeFileContents = codeReader.result.split(",")[1];
+                            actionData = {
+                                'type': 'run_code',
+                                'file': codeFileContents
+                            };
+                            break;
+                            
+                        case "drop_file":
+                            const dropFileInput = document.getElementById(`dropfile-${originalIndex}`);
+                            const dropLocation = document.getElementById(`droplocation-${originalIndex}`).value;
+                            
+                            if (!dropFileInput.files.length || !dropLocation) {
+                                showError(`Please complete all fields for Drop File action #${i+1}`);
+                                return;
+                            }
+                            
+                            // Get file contents
+                            const dropFile = dropFileInput.files[0];
+                            const dropReader = new FileReader();
+                            dropReader.readAsDataURL(dropFile);
+                            await new Promise(resolve => dropReader.onload = resolve);
+                            const dropFileContents = dropReader.result.split(",")[1];
+                            
+                            actionData = {
+                                'type': 'drop_file',
+                                'file': dropFileContents,
+                                'location': dropLocation
+                            };
+                            break;
+                            
+                        case "run_cmd":
+                            const command = document.getElementById(`command-${originalIndex}`).value;
+                            
+                            if (!command) {
+                                showError(`Please enter a command for Run OS Command action #${i+1}`);
+                                return;
+                            }
+                            
+                            actionData = {
+                                'type': 'run_cmd',
+                                'cmd': command
+                            };
+                            break;
+                    }
+                    
+                    actions.push(actionData);
+                }
+
+                if (actions.length === 0) {
+                    showError("No actions specified");
+                    return;
+                }
+
+                // Build the complete request data
+                const requestData = {
+                    name: name,
+                    action: actions,
+                    sideload: sideload,
+                    inflate: inflate
+                };
+
+                console.log("Request JSON:", JSON.stringify(requestData, null, 2));
+
+                try {
+                    showProcessingOverlay();
+                    const url = new URL(window.location.origin + "/api/build");
+                    
+                    const response = await fetch(url.href, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    hideProcessingOverlay();
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server Error: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+                    console.log("Response JSON:", JSON.stringify(responseData, null, 2));
+                    
+                    if (responseData.buildid) {
+                        showResults(responseData.buildid);
+                    } else {
+                        showError("No valid URL received from server.");
+                    }
+                } catch (error) {
+                    hideProcessingOverlay();
+                    console.log(error);
+                    showError(`Failed to submit request: ${error.message}`);
+                }
+            });
+        </script>
+    </body>
+</html>

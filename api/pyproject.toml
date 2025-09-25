@@ -1,0 +1,11 @@
+[project]
+name = "clickforclickonce"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.13",
+    "pylint>=3.3.7",
+    "uvicorn>=0.34.3",
+]
