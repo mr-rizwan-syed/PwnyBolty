@@ -1,6 +1,6 @@
 # ClickForClickOnce
 
-**ClickForClickOnce** project aims at providing a web-based interface for easily generating configurable and ready-to-deploy clickonce payloads. The project uses Microsoft signed binaries in it's ClickOnce deployments and then sideloads a payload DLL using AppDomainManager Injection. This repository is a part of my [WWHF Deadwood 2025](https://wildwesthackinfest.com/wild-west-hackin-fest-deadwood-2025/) toolshed talk. You can find the slides for the presentation [here]().
+**ClickForClickOnce** project aims at providing a web-based interface for easily generating configurable and ready-to-deploy clickonce payloads. The project uses Microsoft signed binaries in it's ClickOnce deployments and then sideloads a payload DLL using AppDomainManager Injection. This repository is a part of my [WWHF Deadwood 2025](https://wildwesthackinfest.com/wild-west-hackin-fest-deadwood-2025/) toolshed talk. You can find the slides for the presentation [here](./ClickForClickOnce.pdf).
 
 ## Deployment 
 
