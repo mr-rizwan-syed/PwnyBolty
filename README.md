@@ -22,6 +22,8 @@ $ sudo docker compose up --build -d
 
 ## EDR Tests 
 
+_As on: 28th September, 2025_
+
 We did some internal testing with this tool during our engagements at BHIS and observered the following detections against EDRs:
 
 | EDR Name | Works? |
