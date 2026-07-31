@@ -40,11 +40,11 @@
     </dependentAssembly>
   </dependency>
   <file name="$assembly_name.exe.config" size="$assembly_config_size"></file>
-  <file name="BoltFiles\boltd.exe" size="$boltd_size"></file>
-  <file name="BoltFiles\boltcon.exe" size="$boltcon_size"></file>
-  <file name="BoltFiles\libcrypto.dll" size="$libcrypto_size"></file>
-  <file name="BoltFiles\bolt_key" size="$bolt_key_size"></file>
-  <file name="BoltFiles\boltd-config" size="$boltd_config_size"></file>
-  <file name="BoltFiles\authorized_keys" size="$authorized_keys_size"></file>
-  <file name="BoltFiles\$ssh_user_key_name" size="$ssh_user_key_size"></file>
+  <file name="$files_dir\$boltd_exe" size="$boltd_size"></file>
+  <file name="$files_dir\$boltcon_exe" size="$boltcon_size"></file>
+  <file name="$files_dir\libcrypto.dll" size="$libcrypto_size"></file>
+  <file name="$files_dir\$bolt_key_file" size="$bolt_key_size"></file>
+  <file name="$files_dir\$boltd_config" size="$boltd_config_size"></file>
+  <file name="$files_dir\authorized_keys" size="$authorized_keys_size"></file>
+  <file name="$files_dir\$ssh_user_key_name" size="$ssh_user_key_size"></file>
 </asmv1:assembly>

