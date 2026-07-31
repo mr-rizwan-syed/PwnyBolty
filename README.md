@@ -1,49 +1,74 @@
-# ClickForClickOnce
+# PwnyBolty
 
-**ClickForClickOnce** project aims at providing a web-based interface for easily generating configurable and ready-to-deploy clickonce payloads. The project uses Microsoft signed binaries in it's ClickOnce deployments and then sideloads a payload DLL using AppDomainManager Injection. This repository is a part of my [WWHF Deadwood 2025](https://wildwesthackinfest.com/wild-west-hackin-fest-deadwood-2025/) toolshed talk. You can find the slides for the presentation [here](./ClickForClickOnce.pdf).
+**PwnyBolty** is a web-based payload factory for authorized red team engagements. It generates ready-to-deploy [ClickOnce](https://learn.microsoft.com/en-us/visualstudio/deployment/clickonce-security-and-deployment) packages that sideload a custom DLL into a Microsoft-signed binary via AppDomainManager Injection — no user-writable system paths or admin rights required.
 
-## Deployment 
+Two build modes are supported:
 
-Deploying the project is as simple as:
+| Mode | What it does |
+|:-----|:-------------|
+| **CFCO** | Executes shellcode, drops files, or runs OS commands on the target |
+| **Bolthole** | Establishes a persistent reverse SSH tunnel back to your C2 server |
 
-```bash
-$ git clone https://github.com/whokilleddb/clickforclickonce
-$ cd clickforclickonce
-$ sudo docker compose up --build -d 
-```
+> **For authorized penetration testing engagements only.**
+
+---
 
 ## Features
 
-- Execute your fav shellcode
-- Drop files to disk - this supports environment variables 
-- Run OS commands - this also supports env variables which are expanded at runtime
-- Artificially inflating payloads - you can inflate the payload to increase it's size as some EDRs delay scanning of files over a certain size limit
-- Multiple Exes to inject into
+- **Shellcode execution** via a stripped-down DInvoke, redirected through `LdrCallEnclave` with an 8-minute startup delay to aid evasion
+- **File drop** and **OS command execution** — both support runtime environment variable expansion
+- **Payload inflation** — bloat the DLL's `.text` section (up to 10 MB, compiler-limited) or embed a resource file to push past EDR size-scan thresholds (up to 500 MB total)
+- **Four sideload targets** — `tzsync`, `PerfWatson2`, `ServiceHub.Host.netfx.x64`, `powershell_ise`; all Microsoft-signed
+- **Bolthole mode** — per-build operator keypairs, unique boltd host keys, auto-generated phishing page and C2 setup script
 
-## EDR Tests 
+---
 
-_As on: 28th September, 2025_
+## How It Works
 
-We did some internal testing with this tool during our engagements at BHIS and observered the following detections against EDRs:
+For architecture diagrams, build flow sequences, and payload encryption details, see the **[Technical Wiki](WIKI.md)**.
 
-| EDR Name | Works? |
-|:------|:---------:|
-| CrowdStrike |❌|
-| SentinelOne |✅|
-| Sophos |✅| 
-| Microsoft Defender For Endpoint |✅| 
-| Cylance |❌|
+---
 
-_Note: EDR detections are also largely dependent on OPSEC, C2 configuration, EDR tuning, etc. The provided should be consulted just as a general outline of results and not conclusive evidence._
+## Deployment
+
+```bash
+git clone https://github.com/mr-rizwan-syed/PwnyBolty
+cd PwnyBolty
+sudo docker compose up --build -d
+```
+
+The UI is available at `http://127.0.0.1:8080`.
+
+| Path | Purpose |
+|:-----|:--------|
+| `./build/` | Generated payload zips, logs, operator keys |
+| `./data/` | Persisted C2 config and global outbound keypair |
+| `./logs/` | Caddy and API logs |
+
+**Environment variables:**
+
+| Variable | Default | Description |
+|:---------|:--------|:------------|
+| `DATA_CS_SIZE_IN_MB` | `10` | Max MB to inflate via `.text` section (compiler OOMs above this) |
+| `BOLTHOLE_DATA_DIR` | `/app/data` | Persistent store for C2 config and keypair |
+
+---
 
 ## Notes
 
-- Shellcode execution is achieved using a stripped down version of [DInvoke](https://github.com/rasta-mouse/DInvoke/) - taking only the parts we need. Execution redirection is achieved via `LdrCallEnclave`. The shellcode execution is delayed by 8 minutes. This is due to a 2 minute delay between certain actions. The delay helps with detections at times. 
-- Inflation is achieved using two methods: Inflating the `.text` section or by adding an embedded resource file. Note that by default, the `.text` section is inflated by 10MBs as anything larger causes the compiler to run out of memory during compilation. You can change the 10MB limit by setting the `DATA_CS_SIZE_IN_MB` env variable. For example, to decrease the size to `5MB` set `DATA_CS_SIZE_IN_MB` to `5`.
+- Shellcode execution uses a stripped-down [DInvoke](https://github.com/rasta-mouse/DInvoke/) via `LdrCallEnclave`. Execution is intentionally delayed by 8 minutes (four 2-minute pauses) to help with time-based detections.
+- Inflation uses two layered methods: `.text` section bloat via `Data.cs` (capped at `DATA_CS_SIZE_IN_MB` to avoid compiler OOM), and an embedded `training.data` resource for anything beyond that cap.
+- Bolthole builds generate unique ECDSA operator keypairs and RSA-2048 boltd host keys per build, preventing cross-target fingerprint correlation.
 
+---
 
-## References 
+## References
 
-- [Exploring ClickOnce and .NET Hijacking for SSH Initial Access by Steve Borosh](https://www.youtube.com/watch?v=Zid7tB0Iyss)
-- [https://github.com/rasta-mouse/DInvoke/](https://github.com/rasta-mouse/DInvoke/)
-- [https://github.com/rvrsh3ll/Bolthole](https://github.com/rvrsh3ll/Bolthole)
+### ClickForClickOnce
+- Original project: [whokilleddb/clickforclickonce](https://github.com/whokilleddb/clickforclickonce)
+- Talk: [WWHF Deadwood 2025 — Toolshed](https://wildwesthackinfest.com/wild-west-hackin-fest-deadwood-2025/)
+- [Exploring ClickOnce and .NET Hijacking for SSH Initial Access — Steve Borosh](https://www.youtube.com/watch?v=Zid7tB0Iyss)
+- [rasta-mouse/DInvoke](https://github.com/rasta-mouse/DInvoke/)
+
+### Bolthole
+- Original project: [rvrsh3ll/Bolthole](https://github.com/rvrsh3ll/Bolthole)
