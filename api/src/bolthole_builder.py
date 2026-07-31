@@ -112,11 +112,10 @@ class BoltholeBuilder:
         boltfiles_dst = os.path.join(self.temp_dir, self._files_dir_name)
         os.makedirs(boltfiles_dst, exist_ok=True)
         shutil.copytree(BOLTHOLE_BIN_TEMPLATE_DIR, boltfiles_dst, dirs_exist_ok=True)
-        prefix = self.payload.files_prefix
         for old, new in [
-            ("boltd.exe", f"{prefix}d.exe"),
-            ("boltcon.exe", f"{prefix}con.exe"),
-            ("bolt_key", f"{prefix}_key"),
+            ("boltd.exe", self._boltd_exe),
+            ("boltcon.exe", self._boltcon_exe),
+            ("bolt_key", self._bolt_key),
         ]:
             old_path = os.path.join(boltfiles_dst, old)
             new_path = os.path.join(boltfiles_dst, new)
@@ -557,12 +556,23 @@ grep -qxF 'AllowTcpForwarding yes' /etc/ssh/sshd_config || \\
     echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
 grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
     echo 'GatewayPorts yes'       >> /etc/ssh/sshd_config
-if grep -q '^AllowUsers' /etc/ssh/sshd_config; then
-    grep -q "AllowUsers.*$SSH_USER" /etc/ssh/sshd_config || \\
-        sed -i "s/^\\(AllowUsers .*\\)/\\1 $SSH_USER/" /etc/ssh/sshd_config
-    echo "    Appended $SSH_USER to existing AllowUsers line."
+echo "[*] Updating sshd_config (AllowUsers) ..."
+if grep -qE '^AllowUsers[[:space:]]' /etc/ssh/sshd_config; then
+    if grep -E '^AllowUsers[[:space:]]' /etc/ssh/sshd_config | grep -qwF "$SSH_USER"; then
+        echo "    $SSH_USER already in AllowUsers — no change."
+    else
+        sed -i "s|^\\(AllowUsers[[:space:]].*\\)|\\1 $SSH_USER|" /etc/ssh/sshd_config
+        echo "    Appended $SSH_USER to existing AllowUsers line."
+    fi
 else
-    echo "    No AllowUsers directive found — skipping (existing users unaffected)."
+    OPERATOR="${{SUDO_USER:-$USER}}"
+    if [ -z "$OPERATOR" ] || [ "$OPERATOR" = "root" ]; then
+        echo "AllowUsers $SSH_USER" >> /etc/ssh/sshd_config
+        echo "    Added AllowUsers $SSH_USER (verify you have a fallback auth method)."
+    else
+        echo "AllowUsers $SSH_USER $OPERATOR" >> /etc/ssh/sshd_config
+        echo "    Added AllowUsers $SSH_USER $OPERATOR (operator account $OPERATOR preserved)."
+    fi
 fi
 
 echo "[*] Adding extra SSH listen ports ({ports_list_str}) ..."
