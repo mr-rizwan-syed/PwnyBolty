@@ -7,3 +7,4 @@ build/
 *.lint
 data/
 templates/bolthole/bin/BoltFiles/bolt_key
+CLAUDE.md
