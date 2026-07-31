@@ -21,7 +21,8 @@ RUN apt-get update && \
         gdb \
         lldb \
         nuget \
-        iputils-ping && \
+        iputils-ping \
+        openssh-client && \
     rm -rf /var/lib/apt/lists/*
 
 # -------------------------

