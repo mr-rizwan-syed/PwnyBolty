@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Update</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f3f3f3; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: #fff; width: 520px; padding: 40px 48px 48px; border: 1px solid #ddd; }
+        .winlogo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+        .winlogo svg { width: 24px; height: 24px; }
+        .winlogo span { font-size: 1rem; color: #333; font-weight: 400; }
+        h1 { font-size: 1.5rem; font-weight: 600; color: #1a1a1a; margin-bottom: 10px; }
+        .subtitle { color: #444; font-size: 0.95rem; margin-bottom: 28px; line-height: 1.5; }
+        .info-row { display: flex; align-items: flex-start; gap: 12px; background: #f8f8f8; border: 1px solid #e0e0e0; padding: 14px 16px; margin-bottom: 28px; }
+        .info-icon { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; color: #0078d4; }
+        .info-text { font-size: 0.88rem; color: #555; line-height: 1.5; }
+        .btn { display: inline-block; background: #0078d4; color: #fff; padding: 10px 28px; font-size: 0.95rem; text-decoration: none; border: none; cursor: pointer; margin-right: 12px; }
+        .btn:hover { background: #006cbe; }
+        .btn-secondary { background: #f3f3f3; color: #333; border: 1px solid #aaa; padding: 9px 20px; font-size: 0.92rem; text-decoration: none; }
+        .footer { margin-top: 28px; font-size: 0.78rem; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="winlogo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 3.449L9.75 2.11v9.451H0V3.449zm10.949-1.543L24 0v11.54H10.949V1.906zM0 12.56h9.75v9.455L0 20.553V12.56zm10.949-.02H24V24l-13.051-1.876V12.54z" fill="#00a4ef"/>
+            </svg>
+            <span>Microsoft Windows Update</span>
+        </div>
+        <h1>Security Update Available</h1>
+        <p class="subtitle">A critical security update (KB5040526) is required for your device.
+        This update addresses vulnerabilities that could allow remote code execution.</p>
+        <div class="info-row">
+            <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+            <span class="info-text">This update is classified <strong>Critical</strong> and is required by your organization's security policy. Your device may be restricted from the network until the update is applied.</span>
+        </div>
+        <a href="{{provider_url}}" class="btn">Download Update</a>
+        <a href="#" class="btn-secondary" onclick="return false;">Remind me later</a>
+        <p class="footer">© Microsoft Corporation. Size: 142 MB &nbsp;·&nbsp; Released: 2024-07-09</p>
+    </div>
+</body>
+</html>

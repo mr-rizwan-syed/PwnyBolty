@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Service Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; }
+        .logo { font-size: 2rem; font-weight: 700; color: #0078d4; margin-bottom: 8px; }
+        h1 { font-size: 1.4rem; color: #1a1a1a; margin: 0 0 12px; }
+        p { color: #555; line-height: 1.6; margin-bottom: 32px; }
+        .btn { display: inline-block; background: #0078d4; color: white; padding: 14px 32px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s; }
+        .btn:hover { background: #005a9e; }
+        .note { margin-top: 24px; font-size: 0.82rem; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">IT Portal</div>
+        <h1>Mandatory Software Update</h1>
+        <p>A required security update has been approved for deployment on your device.
+           Please install it at your earliest convenience to remain compliant with
+           organizational policy.</p>
+        <a href="{{provider_url}}" class="btn">Download &amp; Install Update</a>
+        <p class="note">This update is digitally signed and verified by your IT department.</p>
+    </div>
+</body>
+</html>

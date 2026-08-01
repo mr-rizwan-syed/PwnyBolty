@@ -22,12 +22,27 @@ http://:80  {
 		}
 	}
 
-	@application {
-		path *.application
+	@clickonce_app {
+		path_regexp \.application$
 	}
-	header @application {
+	header @clickonce_app {
 		Content-Type application/x-ms-application
 		Content-Disposition inline
+	}
+
+	@clickonce_manifest {
+		path_regexp \.manifest$
+	}
+	header @clickonce_manifest {
+		Content-Type application/x-ms-manifest
+		Content-Disposition inline
+	}
+
+	@clickonce_deploy {
+		path_regexp \.deploy$
+	}
+	header @clickonce_deploy {
+		Content-Type application/octet-stream
 	}
 
 }

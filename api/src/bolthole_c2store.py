@@ -18,13 +18,13 @@ _PRIVKEY_FILE = os.path.join(DATA_DIR, "bolthole_outbound_key")
 _PUBKEY_FILE  = os.path.join(DATA_DIR, "bolthole_outbound_key.pub")
 
 _DEFAULT_CONFIG = {
-    "ssh_host":        "",
-    "ssh_user":        "",
-    "ports":           "443,80,22,31337",
-    "tunnel_port":     31332,
-    "socks_port":      1080,
-    "startup_delay":   5,
-    "reconnect_delay": 30,
+    "ssh_host":          "",
+    "ssh_user":          "",
+    "ports":             "443,80,22,31337",
+    "tunnel_port_range": "31332-31345",
+    "socks_port":        1080,
+    "startup_delay":     5,
+    "reconnect_delay":   30,
 }
 
 

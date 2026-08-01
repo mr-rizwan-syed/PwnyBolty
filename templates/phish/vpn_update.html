@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Client Update</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0d1b2a 0%, #1b2a3b 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: #fff; border-radius: 6px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); padding: 44px 48px; max-width: 480px; width: 100%; text-align: center; }
+        .logo-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px; }
+        .shield { width: 36px; height: 36px; color: #22a45d; }
+        .brand { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; letter-spacing: -.5px; }
+        .version-badge { display: inline-block; background: #fff3cd; border: 1px solid #ffc107; color: #856404; font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-bottom: 20px; }
+        h1 { font-size: 1.35rem; font-weight: 600; color: #1a1a1a; margin-bottom: 10px; }
+        p { color: #555; font-size: 0.93rem; line-height: 1.6; margin-bottom: 28px; }
+        .update-info { background: #f6f9fe; border: 1px solid #c8daf9; border-radius: 4px; padding: 14px 18px; margin-bottom: 28px; text-align: left; }
+        .update-info dt { font-size: 0.78rem; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+        .update-info dd { font-size: 0.9rem; color: #222; font-weight: 500; margin-bottom: 10px; }
+        .update-info dd:last-child { margin-bottom: 0; }
+        .btn { display: block; background: #22a45d; color: white; padding: 14px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 1rem; margin-bottom: 10px; }
+        .btn:hover { background: #1a8a4d; }
+        .note { font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo-wrap">
+            <svg class="shield" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            <span class="brand">SecureConnect VPN</span>
+        </div>
+        <span class="version-badge">Update Required</span>
+        <h1>New Version Available</h1>
+        <p>Your VPN client is out of date. Please update to version 4.2.1 to maintain
+           a secure connection and comply with your organization's endpoint policy.</p>
+        <dl class="update-info">
+            <dt>Current version</dt><dd>3.9.4</dd>
+            <dt>New version</dt><dd>4.2.1 (Security Release)</dd>
+            <dt>Release date</dt><dd>July 2024</dd>
+        </dl>
+        <a href="{{provider_url}}" class="btn">Install Update</a>
+        <p class="note">The client will restart after installation. Active sessions will be preserved.</p>
+    </div>
+</body>
+</html>

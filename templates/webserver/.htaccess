@@ -1,0 +1,5 @@
+# Apache: place this in the root of your ClickOnce deployment directory
+# Requires mod_mime to be enabled
+AddType application/x-ms-application  .application
+AddType application/x-ms-manifest     .manifest
+AddType application/octet-stream      .deploy

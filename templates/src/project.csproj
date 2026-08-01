@@ -36,9 +36,5 @@
     <Compile Include="Data.cs"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="training.data" />
-  </ItemGroup>
-
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

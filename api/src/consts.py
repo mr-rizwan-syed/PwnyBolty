@@ -7,6 +7,9 @@ import logging
 BUILD_DIR = "/app/static/build/"
 SRC_TEMPLATE_DIR = "/templates/src"
 BIN_TEMPLATE_DIR = "/templates/bin"
+PHISH_TEMPLATE_DIR = "/templates/phish"
+WEBSERVER_CONFIG_DIR = "/templates/webserver"
+ALLOWED_PHISH_TEMPLATES = ["it_portal", "microsoft_update", "vpn_update", "office_update"]
 SIDELOAD_OPTIONS = [
     "tzsync",
     "systemhost",
@@ -20,7 +23,7 @@ BOLTHOLE_SRC_TEMPLATE_DIR = "/templates/bolthole/src"
 BOLTHOLE_BIN_TEMPLATE_DIR = "/templates/bolthole/bin/BoltFiles"
 BOLTHOLE_BUILD_CMD = "msbuild /property:Configuration=Release /property:Platform=x64 /restore"
 BOLTHOLE_SIDELOAD_OPTIONS = SIDELOAD_OPTIONS
-DATA_CS_SIZE_IN_MB =  os.getenv("DATA_CS_SIZE_IN_MB") if os.getenv("DATA_CS_SIZE_IN_MB") else 10
+DATA_CS_SIZE_IN_MB = int(os.getenv("DATA_CS_SIZE_IN_MB", "10"))
 INFLATE_SIZE = 50 * 1024 * 1024; # Inflate file size 
 
 class LoggingConsts:

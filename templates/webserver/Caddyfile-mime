@@ -1,0 +1,7 @@
+# Caddy: add these blocks inside your site block to serve correct ClickOnce MIME types
+@application { path *.application }
+@manifest    { path *.manifest }
+@deploy      { path *.deploy }
+header @application Content-Type application/x-ms-application
+header @manifest    Content-Type application/x-ms-manifest
+header @deploy      Content-Type application/octet-stream

