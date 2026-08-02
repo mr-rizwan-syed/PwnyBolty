@@ -143,9 +143,11 @@ class Builder:
 
         self.logger.debug("Building artefacts with: %s", BUILD_CMD)
         curr_dir = os.getcwd()
-        os.chdir(self.temp_dir)
-        run_cmd_check_file(BUILD_CMD, self.tgt_dll, self.logger)
-        os.chdir(curr_dir)
+        try:
+            os.chdir(self.temp_dir)
+            run_cmd_check_file(BUILD_CMD, self.tgt_dll, self.logger)
+        finally:
+            os.chdir(curr_dir)
 
     def generate_phish_page(self):
         """Write index.html lure page from selected phish template.
