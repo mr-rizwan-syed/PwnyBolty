@@ -96,6 +96,9 @@ body {
 /* ── Tab content ── */
 .tab-content { display: none; }
 .tab-content.active { display: block; }
+.tab-credit { font-size:.72rem; color:var(--text2); margin-bottom:14px; }
+.tab-credit a { color:var(--accent2); text-decoration:none; }
+.tab-credit a:hover { text-decoration:underline; }
 
 /* ── Section cards ── */
 .section-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; }
@@ -368,7 +371,7 @@ input[type=range]::-webkit-slider-thumb {
   <!-- Header -->
   <header class="app-header">
     <div class="wordmark">&#x25C6; PwnyBolty</div>
-    <div class="tagline">Authorized Penetration Testing Payload Generator</div>
+    <div class="tagline">ClickOnce Payload Builder for Authorized Engagements</div>
     <div class="header-actions">
       <button class="btn-icon" onclick="switchTab('history')" title="Build History">&#128196; History</button>
       <button class="btn-icon" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">&#9788;</button>
@@ -389,6 +392,8 @@ input[type=range]::-webkit-slider-thumb {
 
   <!-- ══════════ CFCO TAB ══════════ -->
   <div class="tab-content active" id="cfco-tab">
+
+    <div class="tab-credit">Based on <a href="https://github.com/whokilleddb/clickforclickonce" target="_blank" rel="noopener">ClickForClickOnce</a> by whokilleddb</div>
 
     <div class="section-card open" id="cfco-step1-card">
       <div class="section-header" onclick="toggleSection('cfco-step1-card')">
@@ -517,6 +522,8 @@ input[type=range]::-webkit-slider-thumb {
 
   <!-- ══════════ BOLTHOLE TAB ══════════ -->
   <div class="tab-content" id="bolthole-tab">
+
+    <div class="tab-credit">Based on <a href="https://github.com/rvrsh3ll/Bolthole" target="_blank" rel="noopener">Bolthole</a> by rvrsh3ll</div>
 
     <div class="step-indicator">
       <div class="step-dot active" id="bh-dot-1"></div>
@@ -771,13 +778,6 @@ input[type=range]::-webkit-slider-thumb {
 
 </div><!-- end .app -->
 
-<footer style="text-align:center;margin-top:32px;padding:16px;font-size:.75rem;color:var(--text2);line-height:1.9">
-  Based on
-  <a href="https://github.com/whokilleddb/clickforclickonce" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:none">ClickForClickOnce</a>
-  by whokilleddb &amp;
-  <a href="https://github.com/rvrsh3ll/Bolthole" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:none">Bolthole</a>
-  by rvrsh3ll
-</footer>
 
 <!-- ════════ BUILD LOG MODAL ════════ -->
 <div class="modal-backdrop hidden" id="logModal">
