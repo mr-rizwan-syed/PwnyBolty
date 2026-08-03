@@ -103,7 +103,7 @@ sequenceDiagram
 
 ### Overview
 
-Bolthole bundles a miniature SSH daemon (`boltd`) and SSH client (`boltcon`) inside the ClickOnce package. Once the target runs the payload, it calls home through common firewall-allowed ports (443, 80, 22 …) and establishes a reverse tunnel back to your C2 server. The operator then SSHes into the tunnel and gets a shell — plus an optional SOCKS5 proxy for lateral movement.
+Bolthole bundles a miniature SSH daemon (`sshd`) and SSH client (`ssh`) inside the ClickOnce package. Once the target runs the payload, it calls home through common firewall-allowed ports (443, 80, 22 …) and establishes a reverse tunnel back to your C2 server. The operator then SSHes into the tunnel and gets a shell — plus an optional SOCKS5 proxy for lateral movement.
 
 ### Step 1 — Configure C2 (one-time setup)
 
@@ -137,7 +137,7 @@ sequenceDiagram
     UI->>API: POST /api/bolthole-build
     API->>Builder: Start background build
 
-    Note over Builder: 1. Generate per-build ECDSA-256 operator keypair<br/>2. Generate per-build RSA-2048 boltd host key<br/>3. Embed global outbound key as {ssh_user}_key<br/>4. Substitute all values into Program.cs<br/>   (host, user, ports, tunnel range, delays, filenames)<br/>5. Compile Bolthole DLL with msbuild<br/>6. Bundle DLL + BoltFiles into ClickOnce package<br/>7. Generate phishing page and c2_setup.sh
+    Note over Builder: 1. Generate per-build ECDSA-256 operator keypair<br/>2. Generate per-build RSA-2048 sshd host key<br/>3. Embed global outbound key as {ssh_user}_key<br/>4. Substitute all values into Program.cs<br/>   (host, user, ports, tunnel range, delays, filenames)<br/>5. Compile Bolthole DLL with msbuild<br/>6. Bundle DLL + BoltFiles into ClickOnce package<br/>7. Generate phishing page and c2_setup.sh
 
     Builder-->>Operator: payload.zip · operator_key · c2_setup.sh
 ```
@@ -182,7 +182,7 @@ sequenceDiagram
     C2-->>Operator: SOCKS5 pivot into target network
 ```
 
-> **How the operator finds the tunnel port:** When the target connects, `boltcon` uses the Windows username and machine name as the SSH username in the format `<user>.<machine>.p<PORT>`. The C2 auth log shows this: `journalctl -u ssh | grep "Invalid user"`. The `.p<PORT>` suffix is the active tunnel port.
+> **How the operator finds the tunnel port:** When the target connects, the SSH client uses the Windows username and machine name as the SSH username in the format `<user>.<machine>.p<PORT>`. The C2 auth log shows this: `journalctl -u ssh | grep "Invalid user"`. The `.p<PORT>` suffix is the active tunnel port.
 
 ---
 
@@ -229,4 +229,4 @@ flowchart LR
 | **Reverse SSH tunnel** | The target initiates the outbound connection (bypassing inbound firewall rules); the operator connects inbound through that tunnel |
 | **SOCKS5 pivot** | SSH dynamic port forwarding that lets the operator route arbitrary TCP traffic through the tunnel into the target network |
 | **Operator keypair** | Per-build ECDSA keypair — private key goes to the operator, public key is embedded in `authorized_keys` inside the package |
-| **Global outbound keypair** | Shared ECDSA keypair used by `boltcon` to authenticate to C2 — one entry in the C2's `authorized_keys` covers all builds |
+| **Global outbound keypair** | Shared ECDSA keypair used by the SSH client to authenticate to C2 — one entry in the C2's `authorized_keys` covers all builds |
