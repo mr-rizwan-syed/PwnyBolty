@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="PwnyBolty_Logo.png" alt="PwnyBolty" width="480">
+  <img src="logo.png" alt="PwnyBolty" width="480">
 </p>
 
 # PwnyBolty
