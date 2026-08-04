@@ -5,7 +5,7 @@ import os
 import subprocess
 
 # def run_cmd(command, shell=True, binary=False, env=None)-> tuple[str|bytes, str|bytes, int]:
-def run_cmd(command)-> tuple[str|bytes, str|bytes, int]:
+def run_cmd(command, cwd=None)-> tuple[str|bytes, str|bytes, int]:
     """
         Run a command and returns the stdout, stderr, retcode
         obtained as a result of running the provided command
@@ -18,15 +18,16 @@ def run_cmd(command)-> tuple[str|bytes, str|bytes, int]:
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        stdin=subprocess.PIPE) as proc:
+        stdin=subprocess.PIPE,
+        cwd=cwd) as proc:
         stdout, stderr = proc.communicate()
         retcode = proc.returncode
 
     return stdout.decode('utf-8'), stderr.decode('utf-8'), retcode
 
-def run_cmd_check_file(cmd: str, file: str, logger):
+def run_cmd_check_file(cmd: str, file: str, logger, cwd=None):
     """Check if a file is created after running a cmd, if not, throw an exception"""
-    stdout, stderr, retcode = run_cmd(cmd)
+    stdout, stderr, retcode = run_cmd(cmd, cwd=cwd)
     
     # Verify launcher has been added 
     if not os.path.exists(file):

