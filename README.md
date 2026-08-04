@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="PwnyBolty_Logo.png" alt="PwnyBolty" width="480">
+</p>
+
 # PwnyBolty
 
 **PwnyBolty** is a web-based payload factory for authorized red team engagements. It generates ready-to-deploy [ClickOnce](https://learn.microsoft.com/en-us/visualstudio/deployment/clickonce-security-and-deployment) packages that sideload a custom DLL into a Microsoft-signed binary via AppDomainManager Injection — no user-writable system paths or admin rights required.
