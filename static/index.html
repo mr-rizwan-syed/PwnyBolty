@@ -980,6 +980,12 @@ function toggleTheme() {
   });
 })();
 
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                        .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+                        .replace(/'/g,'&#39;');
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 let actionCounter = 0;
 let _logPollTimer = null;
@@ -1404,14 +1410,14 @@ ssh &lt;win-user&gt;@localhost -p &lt;PORT&gt; -i operator_key</div>
    <div class="ops-section">
      <div class="ops-label">3. Route traffic through target network — SOCKS5 proxy</div>
      <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Add to /etc/proxychains4.conf:
-#   socks5  127.0.0.1  ${p.socks_port||1080}</span>
+#   socks5  127.0.0.1  ${escHtml(p.socks_port||1080)}</span>
 
 proxychains4 nmap -sT -Pn 10.0.0.0/24
 proxychains4 crackmapexec smb 10.0.0.0/24</div>
    </div>
    <div class="ops-section">
      <div class="ops-label">C2 host</div>
-     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy">${p.ssh_user||''}@${p.ssh_host||''}  tunnel-range:${p.tunnel_port_range||''}  socks:${p.socks_port||1080}</div>
+     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy">${escHtml(p.ssh_user)}@${escHtml(p.ssh_host)}  tunnel-range:${escHtml(p.tunnel_port_range)}  socks:${escHtml(p.socks_port||1080)}</div>
    </div>`;
 }
 
