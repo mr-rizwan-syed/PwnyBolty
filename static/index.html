@@ -1269,6 +1269,10 @@ grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
 
 
 echo "[*] Adding extra SSH listen ports (${portsList}) ..."
+# Anchor Port 22 explicitly first — adding any Port directive makes sshd stop
+# listening on the implicit default 22, so we must preserve it.
+grep -qxF "Port 22" /etc/ssh/sshd_config || \\
+    echo "Port 22" >> /etc/ssh/sshd_config
 for PORT in ${portsLoop}; do
     [ "$PORT" -eq 22 ] && continue
     grep -qxF "Port $PORT" /etc/ssh/sshd_config || \\
