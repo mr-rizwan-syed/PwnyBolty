@@ -97,8 +97,9 @@ public class Boltout
 
             Process boltdStart = new Process();
             boltdStart.StartInfo.FileName = boltd;
-            boltdStart.StartInfo.Arguments = $"-D -h {boltHostKey} -f {boltConfig} -o AuthorizedKeysFile={boltAllow}";
-            boltdStart.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            boltdStart.StartInfo.Arguments = $"-D -h \"{boltHostKey}\" -f \"{boltConfig}\" -o AuthorizedKeysFile=\"{boltAllow}\"";
+            boltdStart.StartInfo.UseShellExecute = false;
+            boltdStart.StartInfo.CreateNoWindow = true;
             boltdStart.Start();
 
             Thread.Sleep(REPLACE_STARTUP_DELAY_MS);
@@ -114,22 +115,25 @@ public class Boltout
                 int selectedTunnelPort = -1;
                 foreach (int tPort in tunnelPorts)
                 {
-                    Process testConn = new Process();
-                    testConn.StartInfo.FileName = boltCon;
-                    testConn.StartInfo.Arguments =
-                        $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ExitOnForwardFailure=yes " +
-                        $"-o ConnectTimeout=10 -o loglevel=ERROR " +
-                        $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
-                        $"-R {tPort}:127.0.0.1:{boltdLocalPort} -N";
-                    testConn.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    testConn.Start();
-                    Thread.Sleep(5000);
-                    if (!testConn.HasExited)
+                    using (Process testConn = new Process())
                     {
-                        selectedTunnelPort = tPort;
-                        testConn.Kill();
-                        testConn.WaitForExit();
-                        break;
+                        testConn.StartInfo.FileName = boltCon;
+                        testConn.StartInfo.Arguments =
+                            $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ExitOnForwardFailure=yes " +
+                            $"-o ConnectTimeout=10 -o loglevel=ERROR " +
+                            $"-p {selectedPort} -i \"{boltKey}\" {userName}@{sshHost} " +
+                            $"-R {tPort}:127.0.0.1:{boltdLocalPort} -N";
+                        testConn.StartInfo.UseShellExecute = false;
+                        testConn.StartInfo.CreateNoWindow = true;
+                        testConn.Start();
+                        Thread.Sleep(5000);
+                        if (!testConn.HasExited)
+                        {
+                            selectedTunnelPort = tPort;
+                            try { testConn.Kill(); } catch { }
+                            testConn.WaitForExit();
+                            break;
+                        }
                     }
                 }
 
@@ -143,27 +147,37 @@ public class Boltout
                 // Auth log shows: Invalid user john.LAPTOP-ABC123.p31335 from 1.2.3.4 port 54321
                 string probeUser = SanitizeUsername(
                     Environment.UserName + "." + Environment.MachineName + ".p" + selectedTunnelPort);
-                Process probe = new Process();
-                probe.StartInfo.FileName = boltCon;
-                probe.StartInfo.Arguments =
-                    $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ConnectTimeout=5 -o loglevel=ERROR " +
-                    $"-p {selectedPort} -i {boltKey} {probeUser}@{sshHost} -N";
-                probe.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                probe.Start();
-                if (!probe.WaitForExit(8000)) probe.Kill();
+                using (Process probe = new Process())
+                {
+                    probe.StartInfo.FileName = boltCon;
+                    probe.StartInfo.Arguments =
+                        $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ConnectTimeout=5 -o loglevel=ERROR " +
+                        $"-p {selectedPort} -i \"{boltKey}\" {probeUser}@{sshHost} -N";
+                    probe.StartInfo.UseShellExecute = false;
+                    probe.StartInfo.CreateNoWindow = true;
+                    probe.Start();
+                    if (!probe.WaitForExit(8000))
+                    {
+                        try { probe.Kill(); } catch { }
+                        probe.WaitForExit();
+                    }
+                }
 
                 // Real tunnel connection
-                Process boltConStart = new Process();
-                boltConStart.StartInfo.FileName = boltCon;
-                boltConStart.StartInfo.Arguments =
-                    $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ServerAliveInterval=30 -o Compression=yes " +
-                    $"-o ForwardAgent=no -o TCPKeepAlive=yes -o ServerAliveCountMax=5 " +
-                    $"-o ExitOnForwardFailure=yes -o loglevel=ERROR " +
-                    $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
-                    $"-R {selectedTunnelPort}:127.0.0.1:{boltdLocalPort} -N";
-                boltConStart.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                boltConStart.Start();
-                boltConStart.WaitForExit();
+                using (Process boltConStart = new Process())
+                {
+                    boltConStart.StartInfo.FileName = boltCon;
+                    boltConStart.StartInfo.Arguments =
+                        $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ServerAliveInterval=30 -o Compression=yes " +
+                        $"-o ForwardAgent=no -o TCPKeepAlive=yes -o ServerAliveCountMax=5 " +
+                        $"-o ExitOnForwardFailure=yes -o loglevel=ERROR " +
+                        $"-p {selectedPort} -i \"{boltKey}\" {userName}@{sshHost} " +
+                        $"-R {selectedTunnelPort}:127.0.0.1:{boltdLocalPort} -N";
+                    boltConStart.StartInfo.UseShellExecute = false;
+                    boltConStart.StartInfo.CreateNoWindow = true;
+                    boltConStart.Start();
+                    boltConStart.WaitForExit();
+                }
                 Thread.Sleep(REPLACE_RECONNECT_DELAY_MS);
             }
         }

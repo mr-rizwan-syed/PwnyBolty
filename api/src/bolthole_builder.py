@@ -125,9 +125,6 @@ class BoltholeBuilder:
         if te - ts > 63:
             raise Exception("tunnel_port_range too wide (max 64 ports)")
 
-        if not 1 <= self.payload.socks_port <= 65535:
-            raise Exception("socks_port out of valid range")
-
         priv, _ = load_keypair()
         if not priv:
             raise Exception(
@@ -578,7 +575,6 @@ class BoltholeBuilder:
 # ssh_user     : {self.payload.ssh_user}
 # ports        : {ports_list_str}
 # tunnel_range : {tunnel_range_str}
-# socks5       : {self.payload.socks_port}
 set -e
 
 SSH_USER="{self.payload.ssh_user}"
@@ -602,13 +598,8 @@ grep -qxF 'GatewayPorts yes'       /etc/ssh/sshd_config || \\
     echo 'GatewayPorts yes'       >> /etc/ssh/sshd_config
 
 echo "[*] Adding extra SSH listen ports ({ports_list_str}) ..."
-# Anchor Port 22 explicitly first — adding any Port directive makes sshd stop
-# listening on the implicit default 22, so we must preserve it.
-grep -qxF "Port 22" /etc/ssh/sshd_config || \\
-    echo "Port 22" >> /etc/ssh/sshd_config
 for PORT in {ports_ufw}; do
-    [ "$PORT" -eq 22 ] && continue
-    grep -qxF "Port $PORT" /etc/ssh/sshd_config || \\
+    grep -qiE "^port[[:space:]]+$PORT$" /etc/ssh/sshd_config || \\
         echo "Port $PORT" >> /etc/ssh/sshd_config
 done
 
