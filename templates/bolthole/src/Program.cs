@@ -97,11 +97,12 @@ public class Boltout
 
             Process boltdStart = new Process();
             boltdStart.StartInfo.FileName = boltd;
-            boltdStart.StartInfo.Arguments = $"-h {boltHostKey} -f {boltConfig} -o AuthorizedKeysFile={boltAllow}";
+            boltdStart.StartInfo.Arguments = $"-D -h {boltHostKey} -f {boltConfig} -o AuthorizedKeysFile={boltAllow}";
             boltdStart.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             boltdStart.Start();
 
             Thread.Sleep(REPLACE_STARTUP_DELAY_MS);
+            if (boltdStart.HasExited) return;
 
             string boltCon = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_BOLTCON_EXE");
             string boltKey = Path.Combine(baseDirectory, "REPLACE_FILES_DIR", "REPLACE_KEYFILE_NAME");

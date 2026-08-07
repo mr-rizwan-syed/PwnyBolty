@@ -266,6 +266,8 @@ class BoltholeBuilder:
             f.write("PubkeyAuthentication yes\n")
             f.write("PasswordAuthentication no\n")
             f.write("IgnoreRhosts yes\n")
+            f.write("StrictModes no\n")
+            f.write("LogLevel QUIET\n")
         self.logger.debug("Wrote boltd-config with port %d (range start)", ts)
 
         # Write the global outbound private key as {ssh_user}_key.
