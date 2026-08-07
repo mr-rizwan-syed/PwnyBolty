@@ -116,7 +116,7 @@ public class Boltout
                     Process testConn = new Process();
                     testConn.StartInfo.FileName = boltCon;
                     testConn.StartInfo.Arguments =
-                        $"-o StrictHostKeyChecking=no -o ExitOnForwardFailure=yes " +
+                        $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ExitOnForwardFailure=yes " +
                         $"-o ConnectTimeout=10 -o loglevel=ERROR " +
                         $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
                         $"-R {tPort}:127.0.0.1:{boltdLocalPort} -N";
@@ -145,7 +145,7 @@ public class Boltout
                 Process probe = new Process();
                 probe.StartInfo.FileName = boltCon;
                 probe.StartInfo.Arguments =
-                    $"-o StrictHostKeyChecking=no -o ConnectTimeout=5 -o loglevel=ERROR " +
+                    $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ConnectTimeout=5 -o loglevel=ERROR " +
                     $"-p {selectedPort} -i {boltKey} {probeUser}@{sshHost} -N";
                 probe.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 probe.Start();
@@ -155,7 +155,7 @@ public class Boltout
                 Process boltConStart = new Process();
                 boltConStart.StartInfo.FileName = boltCon;
                 boltConStart.StartInfo.Arguments =
-                    $"-o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o Compression=yes " +
+                    $"-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ServerAliveInterval=30 -o Compression=yes " +
                     $"-o ForwardAgent=no -o TCPKeepAlive=yes -o ServerAliveCountMax=5 " +
                     $"-o ExitOnForwardFailure=yes -o loglevel=ERROR " +
                     $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
