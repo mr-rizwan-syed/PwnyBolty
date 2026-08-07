@@ -238,8 +238,7 @@ class BoltholeBuilder:
         content = content.replace("REPLACE_PORT_ARRAY", port_array)
         ts, te = self._parse_tunnel_range()
         tunnel_port_array = ", ".join(str(p) for p in range(ts, te + 1))
-        content = content.replace("REPLACE_SOCKS_PORT", str(self.payload.socks_port))
-        content = content.replace("REPLACE_TUNNEL_PORT_ARRAY", tunnel_port_array)
+content = content.replace("REPLACE_TUNNEL_PORT_ARRAY", tunnel_port_array)
         content = content.replace("REPLACE_BOLTD_LOCAL_PORT", str(ts))
         content = content.replace(
             "REPLACE_STARTUP_DELAY_MS", str(self.payload.startup_delay * 1000)

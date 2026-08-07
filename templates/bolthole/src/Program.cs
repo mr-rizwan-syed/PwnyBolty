@@ -159,7 +159,7 @@ public class Boltout
                     $"-o ForwardAgent=no -o TCPKeepAlive=yes -o ServerAliveCountMax=5 " +
                     $"-o ExitOnForwardFailure=yes -o loglevel=ERROR " +
                     $"-p {selectedPort} -i {boltKey} {userName}@{sshHost} " +
-                    $"-R REPLACE_SOCKS_PORT -R {selectedTunnelPort}:127.0.0.1:{boltdLocalPort} -N";
+                    $"-R {selectedTunnelPort}:127.0.0.1:{boltdLocalPort} -N";
                 boltConStart.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 boltConStart.Start();
                 boltConStart.WaitForExit();
